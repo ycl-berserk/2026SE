@@ -1,0 +1,44 @@
+<view class="page">
+  <view class="summary-card">
+    <view class="summary-top">
+      <view>
+        <view class="summary-name">{{profile.name}}</view>
+        <view class="summary-meta">{{profile.major}}｜{{profile.className}}</view>
+      </view>
+      <view class="summary-stage">{{currentStage.stage}}</view>
+    </view>
+    <view class="summary-desc">{{currentStage.description}}</view>
+    <view class="summary-info">最近更新时间：{{currentStage.updatedAt}}</view>
+  </view>
+
+  <view class="section">
+    <view class="section-title">阶段时间线</view>
+    <view class="timeline">
+      <view wx:for="{{stages}}" wx:key="title" class="timeline-item">
+        <view class="timeline-axis">
+          <view class="timeline-dot {{item.status}}"></view>
+          <view wx:if="{{index !== stages.length - 1}}" class="timeline-line"></view>
+        </view>
+        <view class="timeline-card">
+          <view class="timeline-head">
+            <view class="timeline-title">{{item.title}}</view>
+            <view class="timeline-status {{item.status}}">{{item.statusText}}</view>
+          </view>
+          <view class="timeline-time">{{item.time}}</view>
+          <view class="timeline-desc">{{item.desc}}</view>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <view class="section section-last">
+    <view class="section-title">近期提醒</view>
+    <view class="reminder-list">
+      <view wx:for="{{reminders}}" wx:key="title" class="reminder-card">
+        <view class="reminder-title">{{item.title}}</view>
+        <view class="reminder-deadline">{{item.deadline}}</view>
+        <view class="reminder-desc">{{item.desc}}</view>
+      </view>
+    </view>
+  </view>
+</view>

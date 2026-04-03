@@ -1,0 +1,62 @@
+<view class="page">
+  <view class="search-card">
+    <view class="search-title">政策智能问答与资料库</view>
+    <view class="search-desc">先实现关键词检索与标准答案卡片，后续可接入知识库检索和 AI 问答。</view>
+    <input
+      class="search-input"
+      placeholder="搜索入党流程、奖助学金、休学复学、宿舍调整..."
+      bindinput="onKeywordInput"
+    />
+  </view>
+
+  <scroll-view class="chips-scroll" scroll-x>
+    <view class="chips-row">
+      <view
+        wx:for="{{categories}}"
+        wx:key="*this"
+        class="chip {{selectedCategory === item ? 'chip-active' : ''}}"
+        data-category="{{item}}"
+        bindtap="onCategoryTap"
+      >
+        {{item}}
+      </view>
+    </view>
+  </scroll-view>
+
+  <view class="section">
+    <view class="section-title">标准问答</view>
+    <view class="section-desc">回答优先指向制度摘要和办理建议，避免自由生成。</view>
+    <view wx:if="{{visibleArticles.length}}" class="article-list">
+      <view wx:for="{{visibleArticles}}" wx:key="title" class="article-card">
+        <view class="article-head">
+          <view class="article-category">{{item.category}}</view>
+          <view class="article-source">{{item.source}}</view>
+        </view>
+        <view class="article-title">{{item.title}}</view>
+        <view class="article-summary">{{item.summary}}</view>
+        <view class="article-answer">{{item.answer}}</view>
+      </view>
+    </view>
+    <view wx:else class="empty-card">没有匹配结果，后续这里可调用后端搜索与 AI 检索接口。</view>
+  </view>
+
+  <view class="section section-last">
+    <view class="section-title">常用模板</view>
+    <view class="section-desc">后续接入真实文件下载与使用记录。</view>
+    <view class="template-list">
+      <view
+        wx:for="{{templates}}"
+        wx:key="name"
+        class="template-card"
+        data-name="{{item.name}}"
+        bindtap="onTemplateTap"
+      >
+        <view>
+          <view class="template-name">{{item.name}}</view>
+          <view class="template-desc">{{item.desc}}</view>
+        </view>
+        <view class="template-format">{{item.format}}</view>
+      </view>
+    </view>
+  </view>
+</view>
