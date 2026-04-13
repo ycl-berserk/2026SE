@@ -3,16 +3,16 @@
     <view class="summary-top">
       <view>
         <view class="summary-name">{{profile.name}}</view>
-        <view class="summary-meta">{{profile.major}}｜{{profile.className}}</view>
+        <view class="summary-meta">{{profile.major}} {{profile.className}}</view>
       </view>
       <view class="summary-stage">{{currentStage.stage}}</view>
     </view>
     <view class="summary-desc">{{currentStage.description}}</view>
-    <view class="summary-info">最近更新时间：{{currentStage.updatedAt}}</view>
+    <view class="summary-info">Last sync: {{currentStage.updatedAt}}</view>
   </view>
 
   <view class="section">
-    <view class="section-title">阶段时间线</view>
+    <view class="section-title">Timeline</view>
     <view class="timeline">
       <view wx:for="{{stages}}" wx:key="title" class="timeline-item">
         <view class="timeline-axis">
@@ -29,10 +29,11 @@
         </view>
       </view>
     </view>
+    <view wx:if="{{!stages.length}}" class="empty-card">No record yet.</view>
   </view>
 
   <view class="section section-last">
-    <view class="section-title">近期提醒</view>
+    <view class="section-title">Reminders</view>
     <view class="reminder-list">
       <view wx:for="{{reminders}}" wx:key="title" class="reminder-card">
         <view class="reminder-title">{{item.title}}</view>
@@ -40,5 +41,6 @@
         <view class="reminder-desc">{{item.desc}}</view>
       </view>
     </view>
+    <view wx:if="{{!reminders.length}}" class="empty-card">No reminder yet.</view>
   </view>
 </view>

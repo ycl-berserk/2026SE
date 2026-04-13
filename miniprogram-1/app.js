@@ -1,19 +1,26 @@
-// app.js
+const { ensureLogin } = require('./utils/auth')
+
 App({
-  onLaunch() {
-    // 展示本地存储能力
+  async onLaunch() {
     const logs = wx.getStorageSync('logs') || []
     logs.unshift(Date.now())
     wx.setStorageSync('logs', logs)
 
-    // 登录
-    wx.login({
-      success: res => {
-        // 发送 res.code 到后台换取 openId, sessionKey, unionId
-      }
-    })
+    try {
+      const loginResult = await ensureLogin()
+      this.globalData.userInfo = loginResult.user || null
+      this.globalData.token = loginResult.token || ''
+    } catch (error) {
+      console.error('Initial login failed:', error)
+      wx.showToast({
+        title: '后端连接失败',
+        icon: 'none',
+      })
+    }
   },
+
   globalData: {
-    userInfo: null
-  }
+    userInfo: null,
+    token: '',
+  },
 })

@@ -1,0 +1,65 @@
+const { BASE_URL, TOKEN_KEY } = require('./config')
+
+function doRequest(options) {
+  const {
+    url,
+    method = 'GET',
+    data,
+    header = {},
+    withAuth = true,
+  } = options
+
+  return new Promise((resolve, reject) => {
+    const token = wx.getStorageSync(TOKEN_KEY)
+    const requestHeader = { ...header }
+
+    if (withAuth && token) {
+      requestHeader.Authorization = token
+    }
+
+    wx.request({
+      url: `${BASE_URL}${url}`,
+      method,
+      data,
+      header: requestHeader,
+      success: (res) => {
+        const response = res.data || {}
+
+        if (res.statusCode >= 200 && res.statusCode < 300 && response.code === 0) {
+          resolve(response.data)
+          return
+        }
+
+        reject({
+          statusCode: res.statusCode,
+          ...response,
+        })
+      },
+      fail: reject,
+    })
+  })
+}
+
+async function request(options) {
+  try {
+    return await doRequest(options)
+  } catch (error) {
+    const authExpired = error && (error.statusCode === 401 || error.code === 40100)
+
+    if (options.withAuth !== false && authExpired && !options.__retried) {
+      const { clearLoginState, ensureLogin } = require('./auth')
+      clearLoginState()
+      await ensureLogin(true)
+      return doRequest({
+        ...options,
+        __retried: true,
+      })
+    }
+
+    throw error
+  }
+}
+
+module.exports = {
+  request,
+}

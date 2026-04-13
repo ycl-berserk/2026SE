@@ -3,18 +3,28 @@ package com.ruc.platform.knowledgeness.mapper;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.ruc.platform.knowledgeness.entity.KnowledgeTemplate;
 import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Select;
 
 import java.util.List;
 
-/**
- * 知识模板Mapper接口
- */
 @Mapper
 public interface KnowledgeTemplateMapper extends BaseMapper<KnowledgeTemplate> {
 
-    /**
-     * 查询启用的模板列表
-     * @return 模板列表
-     */
+    @Select("""
+            SELECT
+                id,
+                name,
+                description,
+                category,
+                file_id,
+                format,
+                download_count,
+                status,
+                created_at,
+                updated_at
+            FROM knowledge_template
+            WHERE status = 1
+            ORDER BY created_at DESC
+            """)
     List<KnowledgeTemplate> selectEnabledTemplates();
 }

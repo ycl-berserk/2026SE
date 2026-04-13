@@ -2,28 +2,42 @@ package com.ruc.platform.config;
 
 import cn.dev33.satoken.interceptor.SaInterceptor;
 import cn.dev33.satoken.stp.StpUtil;
-import org.springframework.context.annotation.Configuration;
+import lombok.RequiredArgsConstructor;
+import org.springframework.core.env.Environment;
+import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
-/**
- * Sa-Token 配置类
- * 配置拦截器，实现登录验证
- */
-@Configuration
+@Component
+@RequiredArgsConstructor
 public class SaTokenConfig implements WebMvcConfigurer {
 
-    /**
-     * 注册Sa-Token拦截器
-     * 对需要登录的接口进行拦截验证
-     */
+    private final Environment environment;
+
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
-        // 注册Sa-Token拦截器，开启登录验证
-        registry.addInterceptor(new SaInterceptor(handle -> StpUtil.checkLogin()))
-                // 拦截所有/api/**请求
+        registry.addInterceptor(new SaInterceptor(handler -> {
+                    if (StpUtil.isLogin()) {
+                        return;
+                    }
+
+                    if (isDevProfile()) {
+                        StpUtil.login(1001L);
+                        return;
+                    }
+
+                    StpUtil.checkLogin();
+                }))
                 .addPathPatterns("/api/**")
-                // 排除登录接口和静态资源
                 .excludePathPatterns("/api/auth/wx-login");
+    }
+
+    private boolean isDevProfile() {
+        for (String profile : environment.getActiveProfiles()) {
+            if ("dev".equalsIgnoreCase(profile)) {
+                return true;
+            }
+        }
+        return false;
     }
 }

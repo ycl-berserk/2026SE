@@ -1,10 +1,10 @@
 <view class="page">
   <view class="search-card">
-    <view class="search-title">政策智能问答与资料库</view>
-    <view class="search-desc">先实现关键词检索与标准答案卡片，后续可接入知识库检索和 AI 问答。</view>
+    <view class="search-title">Knowledge Base</view>
+    <view class="search-desc">Reads article and template data from the backend.</view>
     <input
       class="search-input"
-      placeholder="搜索入党流程、奖助学金、休学复学、宿舍调整..."
+      placeholder="Search process, certificate, leave..."
       bindinput="onKeywordInput"
     />
   </view>
@@ -24,10 +24,10 @@
   </scroll-view>
 
   <view class="section">
-    <view class="section-title">标准问答</view>
-    <view class="section-desc">回答优先指向制度摘要和办理建议，避免自由生成。</view>
+    <view class="section-title">Articles</view>
+    <view class="section-desc">Current demo shows title and summary only.</view>
     <view wx:if="{{visibleArticles.length}}" class="article-list">
-      <view wx:for="{{visibleArticles}}" wx:key="title" class="article-card">
+      <view wx:for="{{visibleArticles}}" wx:key="id" class="article-card">
         <view class="article-head">
           <view class="article-category">{{item.category}}</view>
           <view class="article-source">{{item.source}}</view>
@@ -37,16 +37,16 @@
         <view class="article-answer">{{item.answer}}</view>
       </view>
     </view>
-    <view wx:else class="empty-card">没有匹配结果，后续这里可调用后端搜索与 AI 检索接口。</view>
+    <view wx:else class="empty-card">No matched result.</view>
   </view>
 
   <view class="section section-last">
-    <view class="section-title">常用模板</view>
-    <view class="section-desc">后续接入真实文件下载与使用记录。</view>
+    <view class="section-title">Templates</view>
+    <view class="section-desc">Current demo lists template metadata only.</view>
     <view class="template-list">
       <view
         wx:for="{{templates}}"
-        wx:key="name"
+        wx:key="id"
         class="template-card"
         data-name="{{item.name}}"
         bindtap="onTemplateTap"
