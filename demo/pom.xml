@@ -71,7 +71,23 @@
 			<artifactId>flyway-core</artifactId>
 		</dependency>
 
-		<!-- 人大金仓驱动（支持 PostgreSQL 协议） -->
+		<!-- H2 数据库（本地 demo 最小启动方案） -->
+		<dependency>
+			<groupId>com.h2database</groupId>
+			<artifactId>h2</artifactId>
+			<scope>runtime</scope>
+		</dependency>
+
+		<!-- PostgreSQL 官方驱动（用于 PostgreSQL 和 Kingbase 人大金仓连接） -->
+		<dependency>
+			<groupId>org.postgresql</groupId>
+			<artifactId>postgresql</artifactId>
+			<scope>runtime</scope>
+		</dependency>
+
+		<!-- 人大金仓驱动（支持 PostgreSQL 协议，可选） -->
+		<!-- 如需使用官方 Kingbase 驱动，取消注释并确保 lib/kingbase8-8.6.0.jar 存在 -->
+		<!--
 		<dependency>
 			<groupId>com.kingbase8</groupId>
 			<artifactId>kingbase8</artifactId>
@@ -79,18 +95,7 @@
 			<scope>system</scope>
 			<systemPath>${project.basedir}/lib/kingbase8-8.6.0.jar</systemPath>
 		</dependency>
-
-		<!-- PostgreSQL 官方驱动（用于兼容模式连接人大金仓） -->
-		<dependency>
-			<groupId>org.postgresql</groupId>
-			<artifactId>postgresql</artifactId>
-			<scope>runtime</scope>
-		</dependency>
-		<dependency>
-			<groupId>com.h2database</groupId>
-			<artifactId>h2</artifactId>
-			<scope>runtime</scope>
-		</dependency>
+		-->
 
 		<!-- Jackson 日期支持 -->
 		<dependency>

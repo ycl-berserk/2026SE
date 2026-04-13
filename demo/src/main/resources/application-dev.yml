@@ -1,17 +1,10 @@
-spring:
-  datasource:
-    driver-class-name: org.h2.Driver
-    url: jdbc:h2:mem:ruc_platform;MODE=PostgreSQL;DATABASE_TO_LOWER=TRUE;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
-    username: sa
-    password:
-  h2:
-    console:
-      enabled: true
-  flyway:
-    enabled: false
+# 开发环境通用配置模板
+# 注意：数据库配置由具体的 profile 控制（h2/postgres/kingbase）
 
+# 开发环境日志级别
 logging:
   level:
     com.ruc.platform: debug
     com.ruc.platform.mapper: debug
     org.springframework.web: debug
+    org.flywaydb: debug

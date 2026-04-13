@@ -12,6 +12,7 @@ import com.ruc.platform.common.api.ResultCode;
 import com.ruc.platform.common.exception.BizException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -25,16 +26,28 @@ public class AuthServiceImpl implements AuthService {
 
     private final UserMapper userMapper;
     private final WxBindMapper wxBindMapper;
+    private final Environment environment;
 
     @Override
     @Transactional(rollbackFor = Exception.class)
     public LoginVO wxLogin(WxLoginDTO wxLoginDTO) {
-        String openId = "mock_openid_" + wxLoginDTO.getCode();
-        log.info("微信登录，openid: {}", openId);
+        String code = wxLoginDTO.getCode();
+        log.info("微信登录，code: {}", code);
 
+        // 开发环境：使用 demo code 自动登录为测试用户 1001
+        if ("demo".equals(code) && isDevEnvironment()) {
+            User user = userMapper.selectById(1001L);
+            if (user == null) {
+                throw new BizException(ResultCode.NOT_FOUND, "测试用户不存在，请先运行数据库初始化");
+            }
+            log.info("开发环境自动登录为测试用户: {} ({})", user.getRealName(), user.getStudentNo());
+            return buildLoginVO(user);
+        }
+
+        String openId = "mock_openid_" + code;
         WxBind wxBind = wxBindMapper.selectByOpenId(openId);
-        LoginVO loginVO = new LoginVO();
         if (wxBind == null) {
+            LoginVO loginVO = new LoginVO();
             loginVO.setNeedBind(true);
             return loginVO;
         }
@@ -50,7 +63,33 @@ public class AuthServiceImpl implements AuthService {
         wxBind.setLastLoginAt(LocalDateTime.now());
         wxBindMapper.updateById(wxBind);
 
+        return buildLoginVO(user);
+    }
+
+    /**
+     * 判断是否为开发环境
+     */
+    private boolean isDevEnvironment() {
+        String[] activeProfiles = environment.getActiveProfiles();
+        if (activeProfiles.length == 0) {
+            return true; // 默认开发环境
+        }
+        for (String profile : activeProfiles) {
+            String p = profile.toLowerCase();
+            if (p.equals("h2") || p.equals("dev") || p.equals("test")
+                || p.equals("postgres") || p.equals("kingbase")) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * 构建登录返回对象
+     */
+    private LoginVO buildLoginVO(User user) {
         StpUtil.login(user.getId());
+        LoginVO loginVO = new LoginVO();
         loginVO.setNeedBind(false);
         loginVO.setToken(StpUtil.getTokenValue());
         loginVO.setUser(buildUserVO(user));

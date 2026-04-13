@@ -1,0 +1,26 @@
+# H2 内存数据库配置（本地 demo 最小启动方案）
+spring:
+  datasource:
+    driver-class-name: org.h2.Driver
+    url: jdbc:h2:mem:ruc_platform;MODE=PostgreSQL;DATABASE_TO_LOWER=TRUE;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+    username: sa
+    password: 
+  h2:
+    console:
+      enabled: true
+      path: /h2-console
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+    baseline-on-migrate: true
+    baseline-version: 0
+    baseline-description: Initial baseline for H2
+    clean-disabled: true
+    validate-on-migrate: true
+
+# 日志配置（开发调试）
+logging:
+  level:
+    com.ruc.platform: debug
+    com.ruc.platform.mapper: debug
+    org.mybatis: debug

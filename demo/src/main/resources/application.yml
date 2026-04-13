@@ -5,24 +5,14 @@ spring:
   application:
     name: ruc-service-platform
   profiles:
-    active: dev
+    # 默认使用 h2 配置文件，便于本地 demo 最小化启动
+    # 可通过 --spring.profiles.active=postgres 或 kingbase 切换数据库
+    active: h2
   servlet:
     multipart:
       max-file-size: 20MB
       max-request-size: 20MB
-  flyway:
-    enabled: true
-    locations: classpath:db/migration
-    baseline-on-migrate: true
-    baseline-version: 0
-    baseline-description: Initial baseline for KingbaseES
-    encoding: UTF-8
-    clean-disabled: true
-    validate-on-migrate: true
-    # 人大金仓兼容PostgreSQL协议，强制使用PostgreSQL方言
-  sql:
-    init:
-      mode: always
+  # Flyway 配置已移至各环境配置文件（application-h2.yml / application-postgres.yml / application-kingbase.yml）
 
 # MyBatis-Plus 配置
 mybatis-plus:
