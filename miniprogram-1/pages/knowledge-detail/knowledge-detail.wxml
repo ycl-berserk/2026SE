@@ -1,0 +1,31 @@
+<view class="page">
+  <view wx:if="{{loading}}" class="empty-card">Loading...</view>
+
+  <view wx:elif="{{article}}" class="detail-card">
+    <view class="detail-head">
+      <view class="detail-category">{{article.categoryName}}</view>
+      <view class="detail-source">{{article.source}}</view>
+    </view>
+
+    <view class="detail-title">{{article.title}}</view>
+    <view class="detail-meta">Published: {{article.publishTime}}</view>
+    <view class="detail-meta">Views: {{article.viewCount}}</view>
+
+    <view class="section">
+      <view class="section-title">Summary</view>
+      <view class="section-content">{{article.summary}}</view>
+    </view>
+
+    <view class="section">
+      <view class="section-title">Answer</view>
+      <view class="section-content">{{article.answer}}</view>
+    </view>
+
+    <view class="section">
+      <view class="section-title">Content</view>
+      <view class="section-content">{{article.content}}</view>
+    </view>
+  </view>
+
+  <view wx:else class="empty-card">No article data.</view>
+</view>

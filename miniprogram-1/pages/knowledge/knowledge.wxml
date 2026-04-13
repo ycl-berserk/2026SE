@@ -27,7 +27,7 @@
     <view class="section-title">Articles</view>
     <view class="section-desc">Current demo shows title and summary only.</view>
     <view wx:if="{{visibleArticles.length}}" class="article-list">
-      <view wx:for="{{visibleArticles}}" wx:key="id" class="article-card">
+      <view wx:for="{{visibleArticles}}" wx:key="id" class="article-card" data-id="{{item.id}}" bindtap="onArticleTap">
         <view class="article-head">
           <view class="article-category">{{item.category}}</view>
           <view class="article-source">{{item.source}}</view>

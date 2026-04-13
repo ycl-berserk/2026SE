@@ -98,4 +98,15 @@ Page({
       icon: 'none',
     })
   },
+
+  onArticleTap(event) {
+    const { id } = event.currentTarget.dataset
+    if (!id) {
+      return
+    }
+
+    wx.navigateTo({
+      url: `/pages/knowledge-detail/knowledge-detail?id=${id}`,
+    })
+  },
 })
