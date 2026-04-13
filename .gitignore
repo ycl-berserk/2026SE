@@ -1,11 +1,14 @@
 # 微信小程序配置文件
 miniprogram-1/project.config.json
 
-# Java 编译输出
+# Java 构建输出
 demo/target/
 demo/*.log
+demo/boot.out.log
+demo/boot.err.log
 demo/springboot-output.log
 demo/flyway-*.log
+demo/compile_errors.txt
 
 # 依赖
 node_modules/
@@ -14,10 +17,11 @@ node_modules/
 dist/
 build/
 
-# 编辑器
+# 编辑器和本地工具
 .vscode/
 .idea/
 *.iml
+.qwen/
 
 # 系统文件
 .DS_Store

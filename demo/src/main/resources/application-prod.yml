@@ -1,0 +1,18 @@
+# 生产环境配置
+spring:
+  datasource:
+    driver-class-name: com.kingbase8.Driver
+    url: jdbc:kingbase8://127.0.0.1:54321/ruc_platform?currentSchema=public
+    username: system
+    password: ${DB_PASSWORD:123456}
+    hikari:
+      maximum-pool-size: 20
+      minimum-idle: 10
+      connection-timeout: 30000
+
+# 生产环境日志级别
+logging:
+  level:
+    com.ruc.platform: info
+    com.ruc.platform.mapper: warn
+    org.springframework.web: info
