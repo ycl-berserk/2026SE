@@ -39,7 +39,10 @@ async function ensureLogin(force = false) {
   let code = DEMO_LOGIN_CODE
 
   try {
-    await wxLogin()
+    const wxCode = await wxLogin()
+    if (wxCode) {
+      code = wxCode
+    }
   } catch (error) {
     console.warn('wx.login failed, fallback to demo code:', error)
   }

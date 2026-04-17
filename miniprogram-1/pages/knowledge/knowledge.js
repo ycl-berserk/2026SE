@@ -1,6 +1,7 @@
 const { knowledgeBaseData } = require('../../utils/mock-data')
 const { ensureLogin } = require('../../utils/auth')
 const { request } = require('../../utils/request')
+const { BASE_URL, TOKEN_KEY } = require('../../utils/config')
 
 Page({
   data: {
@@ -41,6 +42,7 @@ Page({
         name: item.name,
         desc: item.description || '',
         format: item.format || 'FILE',
+        fileId: item.fileId || null,
       }))
 
       this.setData({
@@ -93,9 +95,64 @@ Page({
   },
 
   onTemplateTap(event) {
-    wx.showToast({
-      title: `${event.currentTarget.dataset.name} pending`,
-      icon: 'none',
+    const { fileId, name } = event.currentTarget.dataset
+    if (!fileId) {
+      wx.showToast({
+        title: `${name} no file`,
+        icon: 'none',
+      })
+      return
+    }
+
+    const token = wx.getStorageSync(TOKEN_KEY)
+    if (!token) {
+      wx.showToast({
+        title: 'Login expired',
+        icon: 'none',
+      })
+      return
+    }
+
+    wx.showLoading({ title: 'Downloading' })
+    wx.downloadFile({
+      url: `${BASE_URL}/api/files/${fileId}/download`,
+      header: {
+        Authorization: token,
+      },
+      success: (res) => {
+        if (res.statusCode !== 200) {
+          wx.hideLoading()
+          wx.showToast({
+            title: 'Download failed',
+            icon: 'none',
+          })
+          return
+        }
+
+        wx.openDocument({
+          filePath: res.tempFilePath,
+          showMenu: true,
+          success: () => {
+            wx.hideLoading()
+          },
+          fail: (error) => {
+            console.error('Open document failed:', error)
+            wx.hideLoading()
+            wx.showToast({
+              title: 'Open failed',
+              icon: 'none',
+            })
+          },
+        })
+      },
+      fail: (error) => {
+        console.error('Download template failed:', error)
+        wx.hideLoading()
+        wx.showToast({
+          title: 'Download failed',
+          icon: 'none',
+        })
+      },
     })
   },
 

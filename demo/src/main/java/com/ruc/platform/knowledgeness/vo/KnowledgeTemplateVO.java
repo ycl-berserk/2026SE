@@ -31,6 +31,11 @@ public class KnowledgeTemplateVO {
     private String category;
 
     /**
+     * 关联文件ID
+     */
+    private Long fileId;
+
+    /**
      * 文件格式
      */
     private String format;

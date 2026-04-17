@@ -169,7 +169,7 @@ Content-Type: application/json
 
 ```json
 {
-  "code": 200,
+  "code": 0,
   "message": "操作成功",
   "data": {
     "token": "xxxxx-xxxxx-xxxxx",
