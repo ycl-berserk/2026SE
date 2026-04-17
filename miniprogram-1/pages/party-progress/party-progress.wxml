@@ -8,11 +8,11 @@
       <view class="summary-stage">{{currentStage.stage}}</view>
     </view>
     <view class="summary-desc">{{currentStage.description}}</view>
-    <view class="summary-info">Last sync: {{currentStage.updatedAt}}</view>
+    <view class="summary-info">最近同步：{{currentStage.updatedAt}}</view>
   </view>
 
   <view class="section">
-    <view class="section-title">Timeline</view>
+    <view class="section-title">流程时间线</view>
     <view class="timeline">
       <view wx:for="{{stages}}" wx:key="title" class="timeline-item">
         <view class="timeline-axis">
@@ -29,11 +29,11 @@
         </view>
       </view>
     </view>
-    <view wx:if="{{!stages.length}}" class="empty-card">No record yet.</view>
+    <view wx:if="{{!stages.length}}" class="empty-card">暂无阶段记录</view>
   </view>
 
   <view class="section section-last">
-    <view class="section-title">Reminders</view>
+    <view class="section-title">提醒事项</view>
     <view class="reminder-list">
       <view wx:for="{{reminders}}" wx:key="title" class="reminder-card">
         <view class="reminder-title">{{item.title}}</view>
@@ -41,6 +41,6 @@
         <view class="reminder-desc">{{item.desc}}</view>
       </view>
     </view>
-    <view wx:if="{{!reminders.length}}" class="empty-card">No reminder yet.</view>
+    <view wx:if="{{!reminders.length}}" class="empty-card">暂无提醒事项</view>
   </view>
 </view>

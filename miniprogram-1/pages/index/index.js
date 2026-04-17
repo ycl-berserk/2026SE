@@ -34,7 +34,7 @@ Page({
     } catch (error) {
       console.error('Load home data failed:', error)
       wx.showToast({
-        title: 'Use mock home',
+        title: '已切换到本地首页数据',
         icon: 'none',
       })
     } finally {
@@ -61,10 +61,10 @@ Page({
     }
 
     return remoteEntries.map((item) => ({
-      title: item.name || item.code || 'Entry',
-      desc: `Code: ${item.code || 'unknown'}`,
-      icon: (item.name || item.code || 'E').slice(0, 1),
-      status: pathMap[item.code] ? 'Ready' : 'Pending',
+      title: item.name || item.code || '入口',
+      desc: `编码：${item.code || '未知'}`,
+      icon: (item.name || item.code || '入').slice(0, 1),
+      status: pathMap[item.code] ? '可用' : '建设中',
       path: pathMap[item.code] || '',
     }))
   },
@@ -72,35 +72,35 @@ Page({
   buildTodoStats(remoteStats = {}) {
     return [
       {
-        label: 'Unread',
+        label: '未读',
         value: String(remoteStats.unreadMessages || 0),
-        hint: 'messages',
+        hint: '消息',
       },
       {
-        label: 'Reminders',
+        label: '提醒',
         value: String(remoteStats.upcomingDeadlines || 0),
-        hint: 'party flow',
+        hint: '党团流程',
       },
       {
-        label: 'Reports',
+        label: '汇报',
         value: String(remoteStats.pendingReports || 0),
-        hint: 'pending',
+        hint: '待处理',
       },
     ]
   },
 
   buildLatestNotices(remoteNotices = []) {
     return (remoteNotices || []).map((item) => ({
-      tag: item.tag || 'Notice',
+      tag: item.tag || '通知',
       date: item.publishDate || item.date || '',
-      title: item.title || 'Untitled',
+      title: item.title || '未命名',
       summary: item.summary || '',
     }))
   },
 
   buildDownloads(remoteDownloads = []) {
     return (remoteDownloads || []).map((item) => ({
-      name: item.name || 'Template',
+      name: item.name || '模板',
       desc: item.description || '',
     }))
   },
@@ -114,7 +114,7 @@ Page({
     }
 
     wx.showToast({
-      title: `${title} pending`,
+      title: `${title}功能建设中`,
       icon: 'none',
     })
   },
@@ -123,7 +123,7 @@ Page({
     const { name } = event.currentTarget.dataset
 
     wx.showToast({
-      title: `${name} pending`,
+      title: `${name}下载功能建设中`,
       icon: 'none',
     })
   },

@@ -20,8 +20,8 @@
 
     <view class="section">
       <view class="section-head">
-        <view class="section-title">Quick Entry</view>
-        <view class="section-desc">Core student-service entry points.</view>
+        <view class="section-title">快捷入口</view>
+        <view class="section-desc">学生服务核心功能入口。</view>
       </view>
 
       <view class="entry-grid">
@@ -36,15 +36,15 @@
           <view class="entry-icon">{{item.icon}}</view>
           <view class="entry-title">{{item.title}}</view>
           <view class="entry-desc">{{item.desc}}</view>
-          <view class="entry-tag {{item.status === 'Ready' ? 'is-ready' : 'is-pending'}}">{{item.status}}</view>
+          <view class="entry-tag {{item.status === '可用' ? 'is-ready' : 'is-pending'}}">{{item.status}}</view>
         </view>
       </view>
     </view>
 
     <view class="section">
       <view class="section-head">
-        <view class="section-title">My Todo</view>
-        <view class="section-desc">Aggregated values from backend home data.</view>
+        <view class="section-title">我的待办</view>
+        <view class="section-desc">由后端首页数据聚合生成。</view>
       </view>
 
       <view class="stats-row">
@@ -58,8 +58,8 @@
 
     <view class="section">
       <view class="section-head">
-        <view class="section-title">Latest Notices</view>
-        <view class="section-desc">Empty is acceptable in the current demo backend.</view>
+        <view class="section-title">最新通知</view>
+        <view class="section-desc">展示最近发布的通知信息。</view>
       </view>
 
       <view class="notice-list">
@@ -73,14 +73,14 @@
             <view class="notice-summary">{{item.summary}}</view>
           </view>
         </view>
-        <view wx:else class="empty-card">No notice data available.</view>
+        <view wx:else class="empty-card">暂无通知数据</view>
       </view>
     </view>
 
     <view class="section">
       <view class="section-head">
-        <view class="section-title">Downloads</view>
-        <view class="section-desc">Current backend does not expose real download links.</view>
+        <view class="section-title">常用下载</view>
+        <view class="section-desc">展示常用资料和模板。</view>
       </view>
 
       <view class="download-list">
@@ -95,15 +95,15 @@
             <view class="download-name">{{item.name}}</view>
             <view class="download-desc">{{item.desc}}</view>
           </view>
-          <view class="download-action">Open</view>
+          <view class="download-action">打开</view>
         </view>
       </view>
     </view>
 
     <view class="section section-last">
       <view class="section-head">
-        <view class="section-title">Scope</view>
-        <view class="section-desc">Current demo focuses on home, knowledge and party progress.</view>
+        <view class="section-title">当前范围</view>
+        <view class="section-desc">当前演示覆盖首页、知识库和党团进度。</view>
       </view>
 
       <view class="highlight-list">

@@ -1,10 +1,10 @@
 <view class="page">
   <view class="search-card">
-    <view class="search-title">Knowledge Base</view>
-    <view class="search-desc">Reads article and template data from the backend.</view>
+    <view class="search-title">知识库</view>
+    <view class="search-desc">支持按分类与关键词检索文章与模板。</view>
     <input
       class="search-input"
-      placeholder="Search process, certificate, leave..."
+      placeholder="搜索流程、证明、请假等关键词"
       bindinput="onKeywordInput"
     />
   </view>
@@ -24,8 +24,8 @@
   </scroll-view>
 
   <view class="section">
-    <view class="section-title">Articles</view>
-    <view class="section-desc">Current demo shows title and summary only.</view>
+    <view class="section-title">文章列表</view>
+    <view class="section-desc">点击卡片可查看文章详情。</view>
     <view wx:if="{{visibleArticles.length}}" class="article-list">
       <view wx:for="{{visibleArticles}}" wx:key="id" class="article-card" data-id="{{item.id}}" bindtap="onArticleTap">
         <view class="article-head">
@@ -37,12 +37,12 @@
         <view class="article-answer">{{item.answer}}</view>
       </view>
     </view>
-    <view wx:else class="empty-card">No matched result.</view>
+    <view wx:else class="empty-card">暂无匹配结果</view>
   </view>
 
   <view class="section section-last">
-    <view class="section-title">Templates</view>
-    <view class="section-desc">Current demo lists template metadata only.</view>
+    <view class="section-title">常用模板</view>
+    <view class="section-desc">点击模板可下载并打开文件。</view>
     <view class="template-list">
       <view
         wx:for="{{templates}}"

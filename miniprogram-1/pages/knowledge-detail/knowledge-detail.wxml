@@ -1,5 +1,5 @@
 <view class="page">
-  <view wx:if="{{loading}}" class="empty-card">Loading...</view>
+  <view wx:if="{{loading}}" class="empty-card">加载中...</view>
 
   <view wx:elif="{{article}}" class="detail-card">
     <view class="detail-head">
@@ -8,24 +8,24 @@
     </view>
 
     <view class="detail-title">{{article.title}}</view>
-    <view class="detail-meta">Published: {{article.publishTime}}</view>
-    <view class="detail-meta">Views: {{article.viewCount}}</view>
+    <view class="detail-meta">发布时间：{{article.publishTime}}</view>
+    <view class="detail-meta">浏览量：{{article.viewCount}}</view>
 
     <view class="section">
-      <view class="section-title">Summary</view>
+      <view class="section-title">摘要</view>
       <view class="section-content">{{article.summary}}</view>
     </view>
 
     <view class="section">
-      <view class="section-title">Answer</view>
+      <view class="section-title">办理建议</view>
       <view class="section-content">{{article.answer}}</view>
     </view>
 
     <view class="section">
-      <view class="section-title">Content</view>
+      <view class="section-title">正文</view>
       <view class="section-content">{{article.content}}</view>
     </view>
   </view>
 
-  <view wx:else class="empty-card">No article data.</view>
+  <view wx:else class="empty-card">暂无文章数据</view>
 </view>

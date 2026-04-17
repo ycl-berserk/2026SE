@@ -27,24 +27,24 @@ Page({
 
       this.setData({
         profile: {
-          name: profile.realName || 'Demo User',
+          name: profile.realName || '演示用户',
           major: profile.major || '',
           className: profile.className || '',
         },
         currentStage: {
-          stage: overview.currentStageName || 'Unknown',
-          description: `Stage code: ${overview.currentStageCode || 'unknown'}, reminders: ${overview.pendingReminders || 0}.`,
-          updatedAt: 'synced',
+          stage: overview.currentStageName || '未知阶段',
+          description: `阶段编码：${overview.currentStageCode || '未知'}，待处理提醒：${overview.pendingReminders || 0} 条。`,
+          updatedAt: '已同步',
         },
         stages: (records || []).map((item) => ({
-          title: item.title || item.stageCode || 'Record',
+          title: item.title || item.stageCode || '阶段记录',
           time: item.eventTime || '',
           desc: item.description || '',
           status: this.mapStageStatus(item.status),
           statusText: this.mapStageStatusText(item.status),
         })),
         reminders: (reminders || []).map((item) => ({
-          title: item.title || 'Reminder',
+          title: item.title || '提醒事项',
           deadline: item.deadline || '',
           desc: item.content || '',
         })),
@@ -52,7 +52,7 @@ Page({
     } catch (error) {
       console.error('Load party progress failed:', error)
       wx.showToast({
-        title: 'Use mock flow',
+        title: '已切换到本地流程数据',
         icon: 'none',
       })
     }
@@ -70,11 +70,11 @@ Page({
 
   mapStageStatusText(status) {
     if (status === 1) {
-      return 'done'
+      return '已完成'
     }
     if (status === 0) {
-      return 'active'
+      return '进行中'
     }
-    return 'pending'
+    return '待完成'
   },
 })

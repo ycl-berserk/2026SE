@@ -11,7 +11,7 @@ Page({
     const { id } = options || {}
     if (!id) {
       wx.showToast({
-        title: 'Missing article id',
+        title: '缺少文章编号',
         icon: 'none',
       })
       this.setData({ loading: false })
@@ -35,8 +35,8 @@ Page({
           id: article.id,
           title: article.title || '',
           summary: article.summary || '',
-          categoryName: article.categoryName || 'Uncategorized',
-          source: article.source || 'API',
+          categoryName: article.categoryName || '未分类',
+          source: article.source || '平台',
           answer: article.answer || '',
           content: article.content || '',
           publishTime: article.publishTime || '',
@@ -46,7 +46,7 @@ Page({
     } catch (error) {
       console.error('Load article detail failed:', error)
       wx.showToast({
-        title: 'Load failed',
+        title: '加载失败',
         icon: 'none',
       })
     } finally {

@@ -7,7 +7,7 @@ Page({
   data: {
     keyword: '',
     categories: knowledgeBaseData.categories,
-    selectedCategory: 'All',
+    selectedCategory: '全部',
     articles: knowledgeBaseData.articles,
     visibleArticles: knowledgeBaseData.articles,
     templates: knowledgeBaseData.templates,
@@ -28,26 +28,26 @@ Page({
 
       const articles = (articleData.records || articleData.list || []).map((item) => ({
         id: item.id,
-        category: item.categoryName || 'Uncategorized',
-        source: 'API',
+        category: item.categoryName || '未分类',
+        source: '平台',
         title: item.title,
         summary: item.summary || '',
-        answer: item.summary || 'Open detail page later.',
+        answer: item.summary || '点击进入详情查看',
         keywords: [item.title, item.summary || ''].join(' ').split(/\s+/).filter(Boolean),
       }))
 
-      const categories = ['All', ...new Set(articles.map((item) => item.category))]
+      const categories = ['全部', ...new Set(articles.map((item) => item.category))]
       const templates = (templateData || []).map((item) => ({
         id: item.id,
         name: item.name,
         desc: item.description || '',
-        format: item.format || 'FILE',
+        format: item.format || '文件',
         fileId: item.fileId || null,
       }))
 
       this.setData({
         categories,
-        selectedCategory: 'All',
+        selectedCategory: '全部',
         articles,
         visibleArticles: articles,
         templates,
@@ -55,7 +55,7 @@ Page({
     } catch (error) {
       console.error('Load knowledge data failed:', error)
       wx.showToast({
-        title: 'Use mock list',
+        title: '已切换到本地数据',
         icon: 'none',
       })
     }
@@ -82,7 +82,7 @@ Page({
     const normalizedKeyword = keyword.toLowerCase()
 
     const visibleArticles = articles.filter((item) => {
-      const matchCategory = selectedCategory === 'All' || item.category === selectedCategory
+      const matchCategory = selectedCategory === '全部' || item.category === selectedCategory
       const matchKeyword = !normalizedKeyword
         || item.title.toLowerCase().includes(normalizedKeyword)
         || item.summary.toLowerCase().includes(normalizedKeyword)
@@ -98,7 +98,7 @@ Page({
     const { fileId, name } = event.currentTarget.dataset
     if (!fileId) {
       wx.showToast({
-        title: `${name} no file`,
+        title: `${name}暂无文件`,
         icon: 'none',
       })
       return
@@ -107,13 +107,13 @@ Page({
     const token = wx.getStorageSync(TOKEN_KEY)
     if (!token) {
       wx.showToast({
-        title: 'Login expired',
+        title: '登录已失效',
         icon: 'none',
       })
       return
     }
 
-    wx.showLoading({ title: 'Downloading' })
+    wx.showLoading({ title: '下载中' })
     wx.downloadFile({
       url: `${BASE_URL}/api/files/${fileId}/download`,
       header: {
@@ -123,7 +123,18 @@ Page({
         if (res.statusCode !== 200) {
           wx.hideLoading()
           wx.showToast({
-            title: 'Download failed',
+            title: '下载失败',
+            icon: 'none',
+          })
+          return
+        }
+
+        wx.hideLoading()
+
+        const platform = (wx.getSystemInfoSync && wx.getSystemInfoSync().platform) || ''
+        if (platform === 'devtools') {
+          wx.showToast({
+            title: '开发者工具不支持预览，请在真机打开',
             icon: 'none',
           })
           return
@@ -132,14 +143,10 @@ Page({
         wx.openDocument({
           filePath: res.tempFilePath,
           showMenu: true,
-          success: () => {
-            wx.hideLoading()
-          },
           fail: (error) => {
             console.error('Open document failed:', error)
-            wx.hideLoading()
             wx.showToast({
-              title: 'Open failed',
+              title: '打开失败',
               icon: 'none',
             })
           },
@@ -149,7 +156,7 @@ Page({
         console.error('Download template failed:', error)
         wx.hideLoading()
         wx.showToast({
-          title: 'Download failed',
+          title: '下载失败',
           icon: 'none',
         })
       },
