@@ -16,6 +16,10 @@ public class LatestNoticeVO {
 
     private String summary;
 
+    private String tag;
+
+    private String publishDate;
+
     private LocalDateTime publishTime;
 
     private String noticeType;

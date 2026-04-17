@@ -1,7 +1,13 @@
 package com.ruc.platform.home.service;
 
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.ruc.platform.home.vo.LatestNoticeVO;
 import com.ruc.platform.home.vo.HomeVO;
 import com.ruc.platform.home.vo.TodoStatsVO;
+import com.ruc.platform.knowledgeness.entity.KnowledgeTemplate;
+import com.ruc.platform.knowledgeness.mapper.KnowledgeTemplateMapper;
+import com.ruc.platform.notice.entity.Notice;
+import com.ruc.platform.notice.mapper.NoticeMapper;
 import com.ruc.platform.notice.mapper.UserMessageMapper;
 import com.ruc.platform.party.entity.PartyReminder;
 import com.ruc.platform.party.mapper.PartyReminderMapper;
@@ -9,7 +15,9 @@ import com.ruc.platform.party.mapper.PartyReportMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -21,6 +29,8 @@ public class HomeServiceImpl implements HomeService {
     private final UserMessageMapper userMessageMapper;
     private final PartyReminderMapper partyReminderMapper;
     private final PartyReportMapper partyReportMapper;
+    private final NoticeMapper noticeMapper;
+    private final KnowledgeTemplateMapper knowledgeTemplateMapper;
 
     @Override
     public HomeVO getHomeData(Long userId) {
@@ -39,8 +49,8 @@ public class HomeServiceImpl implements HomeService {
         homeVO.setQuickEntries(quickEntries);
 
         homeVO.setTodoStats(getTodoStats(userId));
-        homeVO.setLatestNotices(new ArrayList<>());
-        homeVO.setDownloads(new ArrayList<>());
+        homeVO.setLatestNotices(getLatestNotices());
+        homeVO.setDownloads(getDownloads());
         return homeVO;
     }
 
@@ -60,5 +70,53 @@ public class HomeServiceImpl implements HomeService {
         stats.setUpcomingDeadlines(reminders.size());
         stats.setPendingReports(0);
         return stats;
+    }
+
+    private List<LatestNoticeVO> getLatestNotices() {
+        List<Notice> notices = noticeMapper.selectList(
+                new LambdaQueryWrapper<Notice>()
+                        .eq(Notice::getStatus, 1)
+                        .orderByDesc(Notice::getPublishTime)
+                        .last("LIMIT 5")
+        );
+        if (notices == null || notices.isEmpty()) {
+            return Collections.emptyList();
+        }
+
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+        List<LatestNoticeVO> result = new ArrayList<>(notices.size());
+        for (Notice notice : notices) {
+            LatestNoticeVO vo = new LatestNoticeVO();
+            vo.setId(notice.getId());
+            vo.setTitle(notice.getTitle());
+            vo.setSummary(notice.getSummary());
+            vo.setTag(notice.getTag());
+            vo.setNoticeType(notice.getNoticeType());
+            if (notice.getPublishTime() != null) {
+                vo.setPublishDate(notice.getPublishTime().format(formatter));
+                vo.setPublishTime(notice.getPublishTime());
+            }
+            result.add(vo);
+        }
+        return result;
+    }
+
+    private List<Map<String, String>> getDownloads() {
+        List<KnowledgeTemplate> templates = knowledgeTemplateMapper.selectEnabledTemplates();
+        if (templates == null || templates.isEmpty()) {
+            return Collections.emptyList();
+        }
+
+        int limit = Math.min(templates.size(), 5);
+        List<Map<String, String>> downloads = new ArrayList<>(limit);
+        for (int i = 0; i < limit; i++) {
+            KnowledgeTemplate template = templates.get(i);
+            Map<String, String> item = new HashMap<>();
+            item.put("name", template.getName() == null ? "模板" : template.getName());
+            item.put("description", template.getDescription() == null ? "" : template.getDescription());
+            item.put("format", template.getFormat() == null ? "" : template.getFormat());
+            downloads.add(item);
+        }
+        return downloads;
     }
 }
