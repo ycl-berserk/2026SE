@@ -1,6 +1,9 @@
 {
   "pages": [
     "pages/index/index",
+    "pages/leave-list/leave-list",
+    "pages/leave-form/leave-form",
+    "pages/leave-detail/leave-detail",
     "pages/knowledge/knowledge",
     "pages/knowledge-detail/knowledge-detail",
     "pages/party-progress/party-progress",

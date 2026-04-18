@@ -45,7 +45,7 @@ public class HomeServiceImpl implements HomeService {
         quickEntries.add(createEntry("knowledge", "知识库", "book"));
         quickEntries.add(createEntry("party", "党团进度", "flag"));
         quickEntries.add(createEntry("notice", "通知消息", "bell"));
-        quickEntries.add(createEntry("certificate", "证明申请", "file"));
+        quickEntries.add(createEntry("leave", "请假申请", "file"));
         homeVO.setQuickEntries(quickEntries);
 
         homeVO.setTodoStats(getTodoStats(userId));

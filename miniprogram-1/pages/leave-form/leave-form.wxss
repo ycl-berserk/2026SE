@@ -1,0 +1,47 @@
+.page {
+  min-height: 100vh;
+  background: #f3f6fb;
+  padding: 24rpx;
+  box-sizing: border-box;
+}
+
+.card {
+  background: #ffffff;
+  border-radius: 22rpx;
+  padding: 24rpx;
+}
+
+.field + .field {
+  margin-top: 24rpx;
+}
+
+.label {
+  font-size: 26rpx;
+  color: #334155;
+  margin-bottom: 10rpx;
+}
+
+.input,
+.picker,
+.textarea {
+  width: 100%;
+  box-sizing: border-box;
+  border: 1rpx solid #dbe3ee;
+  border-radius: 14rpx;
+  padding: 16rpx;
+  font-size: 26rpx;
+  color: #0f172a;
+  background: #f8fafc;
+}
+
+.textarea {
+  min-height: 180rpx;
+}
+
+.submit-btn {
+  margin-top: 28rpx;
+  background: #0f766e;
+  color: #ffffff;
+  border-radius: 999rpx;
+  font-size: 30rpx;
+}

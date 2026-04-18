@@ -26,10 +26,11 @@ const homeData = {
       path: '/pages/party-progress/party-progress',
     },
     {
-      title: '证明申请',
-      desc: '功能预留，后续接入。',
-      icon: '证',
-      status: '建设中',
+      title: '请假申请',
+      desc: '提交请假并跟踪审批进度。',
+      icon: '假',
+      status: '可用',
+      path: '/pages/leave-list/leave-list',
     },
     {
       title: '通知消息',

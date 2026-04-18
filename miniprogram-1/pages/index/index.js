@@ -54,6 +54,8 @@ Page({
     const pathMap = {
       knowledge: '/pages/knowledge/knowledge',
       party: '/pages/party-progress/party-progress',
+      leave: '/pages/leave-list/leave-list',
+      certificate: '/pages/leave-list/leave-list',
     }
 
     if (!remoteEntries.length) {

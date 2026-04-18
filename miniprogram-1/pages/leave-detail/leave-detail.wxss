@@ -1,0 +1,93 @@
+.page {
+  min-height: 100vh;
+  background: #f3f6fb;
+  padding: 24rpx;
+  box-sizing: border-box;
+}
+
+.card {
+  background: #ffffff;
+  border-radius: 20rpx;
+  padding: 24rpx;
+  margin-bottom: 16rpx;
+}
+
+.title-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16rpx;
+}
+
+.title {
+  font-size: 32rpx;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.status {
+  padding: 6rpx 14rpx;
+  border-radius: 999rpx;
+  font-size: 20rpx;
+}
+
+.status-0 {
+  color: #b45309;
+  background: #ffedd5;
+}
+
+.status-2 {
+  color: #0f766e;
+  background: #ccfbf1;
+}
+
+.status-3 {
+  color: #be123c;
+  background: #ffe4e6;
+}
+
+.item {
+  margin-top: 14rpx;
+  color: #334155;
+  font-size: 24rpx;
+  line-height: 1.7;
+}
+
+.reject {
+  color: #be123c;
+}
+
+.section-title {
+  font-size: 28rpx;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.timeline-item {
+  margin-top: 18rpx;
+  border-top: 1rpx dashed #e2e8f0;
+  padding-top: 14rpx;
+}
+
+.timeline-title {
+  font-size: 25rpx;
+  color: #0f172a;
+}
+
+.timeline-comment {
+  margin-top: 8rpx;
+  font-size: 24rpx;
+  color: #475569;
+}
+
+.timeline-time {
+  margin-top: 6rpx;
+  font-size: 22rpx;
+  color: #94a3b8;
+}
+
+.empty {
+  margin-top: 20rpx;
+  color: #94a3b8;
+  font-size: 24rpx;
+}

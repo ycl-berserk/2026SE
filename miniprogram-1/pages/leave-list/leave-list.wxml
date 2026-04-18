@@ -1,0 +1,40 @@
+<view class="page">
+  <view class="header">
+    <view class="title">我的请假</view>
+    <view class="desc">查看申请状态并跟踪审批进度</view>
+  </view>
+
+  <view class="tabs">
+    <view
+      wx:for="{{tabs}}"
+      wx:key="code"
+      class="tab {{activeStatus === item.code ? 'active' : ''}}"
+      data-code="{{item.code}}"
+      bindtap="onTabTap"
+    >
+      {{item.text}}
+    </view>
+  </view>
+
+  <view class="list">
+    <view
+      wx:for="{{filteredApplications}}"
+      wx:key="id"
+      class="card"
+      data-id="{{item.id}}"
+      bindtap="onCardTap"
+    >
+      <view class="card-top">
+        <view class="card-title">{{item.title}}</view>
+        <view class="status status-{{item.status}}">{{item.statusText}}</view>
+      </view>
+      <view class="card-reason">{{item.reason}}</view>
+      <view class="card-time">{{item.leaveStartDate}} 至 {{item.leaveEndDate}}</view>
+      <view class="card-submit">提交时间：{{item.submitTime}}</view>
+    </view>
+
+    <view wx:if="{{!filteredApplications.length && !loading}}" class="empty">暂无请假记录</view>
+  </view>
+
+  <button class="create-btn" bindtap="onCreateTap">发起请假</button>
+</view>

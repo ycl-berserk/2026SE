@@ -1,0 +1,25 @@
+<view class="page" wx:if="{{detail}}">
+  <view class="card">
+    <view class="title-row">
+      <view class="title">{{detail.title}}</view>
+      <view class="status status-{{detail.status}}">{{detail.statusText}}</view>
+    </view>
+    <view class="item">请假日期：{{detail.leaveStartDate}} 至 {{detail.leaveEndDate}}</view>
+    <view class="item">联系电话：{{detail.contactPhone}}</view>
+    <view class="item">提交时间：{{detail.submitTime}}</view>
+    <view class="item">请假事由：{{detail.reason}}</view>
+    <view wx:if="{{detail.rejectReason}}" class="item reject">驳回原因：{{detail.rejectReason}}</view>
+  </view>
+
+  <view class="card">
+    <view class="section-title">审批时间线</view>
+    <view wx:if="{{detail.timelines && detail.timelines.length}}">
+      <view wx:for="{{detail.timelines}}" wx:key="createdAt" class="timeline-item">
+        <view class="timeline-title">{{item.actionText}} · {{item.operatorName}}</view>
+        <view class="timeline-comment">{{item.comment}}</view>
+        <view class="timeline-time">{{item.createdAt}}</view>
+      </view>
+    </view>
+    <view wx:else class="empty">暂无审批记录</view>
+  </view>
+</view>

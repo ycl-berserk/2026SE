@@ -1,0 +1,39 @@
+<view class="page">
+  <view class="card">
+    <view class="field">
+      <view class="label">请假标题</view>
+      <input class="input" placeholder="例如：返乡办理证件请假" bindinput="onTitleInput" />
+    </view>
+
+    <view class="field">
+      <view class="label">请假事由</view>
+      <textarea
+        class="textarea"
+        placeholder="请填写详细事由"
+        maxlength="300"
+        bindinput="onReasonInput"
+      />
+    </view>
+
+    <view class="field">
+      <view class="label">开始日期</view>
+      <picker mode="date" bindchange="onStartDateChange">
+        <view class="picker">{{leaveStartDate || '请选择开始日期'}}</view>
+      </picker>
+    </view>
+
+    <view class="field">
+      <view class="label">结束日期</view>
+      <picker mode="date" bindchange="onEndDateChange">
+        <view class="picker">{{leaveEndDate || '请选择结束日期'}}</view>
+      </picker>
+    </view>
+
+    <view class="field">
+      <view class="label">联系电话</view>
+      <input class="input" type="number" placeholder="请填写手机号" bindinput="onPhoneInput" />
+    </view>
+  </view>
+
+  <button class="submit-btn" loading="{{submitting}}" bindtap="onSubmit">提交申请</button>
+</view>
