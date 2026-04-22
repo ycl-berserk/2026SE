@@ -1,0 +1,38 @@
+name: 2026se-kingbase
+
+services:
+  # 注意：
+  # 1) 这里的 image 请替换为你们可用且有授权的 Kingbase 镜像
+  # 2) 环境变量名称按你们镜像要求调整
+  db-kingbase:
+    image: your-registry/kingbasees:latest
+    container_name: 2026se-db-kingbase
+    environment:
+      KINGBASE_DATABASE: test
+      KINGBASE_USER: system
+      KINGBASE_PASSWORD: 123456
+    ports:
+      - "54321:54321"
+    volumes:
+      - kingbase_data:/var/lib/kingbase/data
+
+  app:
+    build:
+      context: ./demo
+      dockerfile: Dockerfile
+    container_name: 2026se-app
+    depends_on:
+      - db-kingbase
+    environment:
+      SPRING_PROFILES_ACTIVE: docker-kingbase
+      DB_HOST: db-kingbase
+      DB_PORT: 54321
+      DB_NAME: test
+      DB_USER: system
+      DB_PASSWORD: 123456
+      SERVER_PORT: 18080
+    ports:
+      - "18080:18080"
+
+volumes:
+  kingbase_data:

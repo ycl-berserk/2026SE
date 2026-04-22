@@ -36,11 +36,13 @@ public class SaTokenConfig implements WebMvcConfigurer {
         // 开发、测试环境（h2、postgres、kingbase、dev）都启用自动登录
         String[] activeProfiles = environment.getActiveProfiles();
         for (String profile : activeProfiles) {
-            if ("dev".equalsIgnoreCase(profile) 
-                || "h2".equalsIgnoreCase(profile)
-                || "postgres".equalsIgnoreCase(profile)
-                || "kingbase".equalsIgnoreCase(profile)
-                || "test".equalsIgnoreCase(profile)) {
+                    if ("dev".equalsIgnoreCase(profile)
+                        || "h2".equalsIgnoreCase(profile)
+                        || "postgres".equalsIgnoreCase(profile)
+                        || "kingbase".equalsIgnoreCase(profile)
+                        || "docker-postgres".equalsIgnoreCase(profile)
+                        || "docker-kingbase".equalsIgnoreCase(profile)
+                        || "test".equalsIgnoreCase(profile)) {
                 return true;
             }
         }

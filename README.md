@@ -13,8 +13,11 @@
 ├─ miniprogram-1/          学生端微信小程序
 ├─ web-counselor/          辅导员/管理员 Vue 审批端
 ├─ demo/                   Spring Boot 后端
+├─ docker-compose.postgres.yml
+├─ docker-compose.kingbase.example.yml
 ├─ documents/API.md        接口文档（持续更新）
 ├─ documents/必要安装.md      环境安装与启动指南
+├─ documents/Docker部署说明.md Docker 使用说明
 ├─ documents/后端脚手架.md    后端设计笔记
 └─ README.md               本文件
 ```
@@ -100,6 +103,32 @@ mvn spring-boot:run
 
 ```bash
 mvn spring-boot:run "-Dspring-boot.run.arguments=--server.port=18081"
+```
+
+### 1.1 使用 Docker 启动后端 + PostgreSQL（推荐团队协作）
+
+在仓库根目录执行：
+
+```bash
+docker compose -f docker-compose.postgres.yml up -d --build
+```
+
+- 后端地址：`http://localhost:18080`
+- PostgreSQL：`localhost:5432`（db=`ruc_platform`，user=`postgres`，password=`postgres`）
+- 停止并清理容器：
+
+```bash
+docker compose -f docker-compose.postgres.yml down
+```
+
+### 1.2 Kingbase Docker 说明
+
+- 仓库已提供示例编排文件：`docker-compose.kingbase.example.yml`
+- 你们需要替换其中的 Kingbase 镜像地址与初始化参数（取决于课程环境/授权）
+- 替换后执行：
+
+```bash
+docker compose -f docker-compose.kingbase.example.yml up -d --build
 ```
 
 ### 2. 启动学生端小程序
