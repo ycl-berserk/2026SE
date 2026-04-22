@@ -11,9 +11,11 @@
 ```text
 2026SE/
 ├─ miniprogram-1/          学生端微信小程序
+├─ web-counselor/          辅导员/管理员 Vue 审批端
 ├─ demo/                   Spring Boot 后端
-├─ API.md                  接口文档（持续更新）
-├─ 后端脚手架.md             后端设计笔记
+├─ documents/API.md        接口文档（持续更新）
+├─ documents/必要安装.md      环境安装与启动指南
+├─ documents/后端脚手架.md    后端设计笔记
 └─ README.md               本文件
 ```
 
@@ -52,20 +54,16 @@
   - 知识库与模板下载链路
   - 党团进度查询
   - 请假申请 MVP（创建、列表、详情、审批）
-- 已明确但未开工：
-  - Vue 辅导员审批网页端
+  - Vue 辅导员审批端基础闭环（待审批列表、详情审批、已处理列表）
+  - 后端审批查询接口（`/api/leave/reviewer/applications`、`/api/leave/reviewer/applications/{id}`）
+  - 端到端联调验收：学生提交 -> 网页端审批 -> 学生侧状态更新
 
 ## 三、下一阶段开发规划（按优先级）
 
-### P1：搭建辅导员 Vue 审批端（优先）
+### P1：完善审批体验（优先）
 
-- 新建前端目录建议：`web-counselor/`
-- 技术建议：`Vue 3 + Vite + Element Plus + Pinia + Vue Router`
-- 首批页面：
-  - 登录页（可先用 demo 登录态）
-  - 待审批列表页
-  - 申请详情页（通过/驳回）
-  - 已处理列表页
+- 补齐审批列表筛选与分页（状态、时间、学生）
+- 完善审批失败提示与重试体验
 
 ### P2：完善后端审批能力
 
@@ -87,7 +85,7 @@
 - 小程序目录 `miniprogram-1/` 仅放学生功能，不再加入辅导员审批页面
 - 网页审批端单独目录维护，避免和小程序耦合
 - 后端接口统一返回 `code=0` 表示成功
-- 新增接口时同步更新 `API.md`
+- 新增接口时同步更新 `documents/API.md`
 
 ## 五、本地运行
 
@@ -110,9 +108,19 @@ mvn spring-boot:run "-Dspring-boot.run.arguments=--server.port=18081"
 2. 关闭域名校验
 3. 配置 `miniprogram-1/utils/config.js` 的 `BASE_URL` 指向后端地址
 
-### 3. 启动辅导员 Vue 端（待创建）
+### 3. 启动辅导员 Vue 端
 
-当前仓库尚未创建 `web-counselor/`，下一步将先完成脚手架与审批页面骨架。
+```bash
+cd web-counselor
+npm install
+npm run dev
+```
+
+默认访问地址：`http://localhost:5173`
+
+- 首次进入可访问 `/login`，点击“进入审批系统”
+- 当前前端默认请求后端地址：`http://127.0.0.1:18080`（见 `src/api/http.js`）
+- 如后端端口不是 `18080`，请同步修改 `baseURL`
 
 ## 六、测试账号与数据
 

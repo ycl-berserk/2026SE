@@ -22,4 +22,13 @@ public interface LeaveApplicationMapper extends BaseMapper<LeaveApplication> {
             ORDER BY submit_time DESC
             """)
     List<LeaveApplication> selectLeaveByUserId(@Param("userId") Long userId);
+
+    @Select("""
+            SELECT *
+            FROM certificate_application
+            WHERE type_code = 'leave'
+              AND (#{status} IS NULL OR status = #{status})
+            ORDER BY submit_time DESC
+            """)
+    List<LeaveApplication> selectAllLeaves(@Param("status") Integer status);
 }

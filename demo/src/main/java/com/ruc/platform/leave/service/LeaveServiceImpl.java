@@ -75,26 +75,22 @@ public class LeaveServiceImpl implements LeaveService {
         if (!application.getUserId().equals(userId)) {
             throw new BizException(ResultCode.FORBIDDEN, "无权查看该申请");
         }
+        return toDetail(application);
+    }
 
-        LeaveApplicationDetailVO detailVO = new LeaveApplicationDetailVO();
-        detailVO.setId(application.getId());
-        detailVO.setTitle(application.getTitle());
-        detailVO.setReason(application.getReason());
-        detailVO.setStatus(application.getStatus());
-        detailVO.setStatusText(getStatusText(application.getStatus()));
-        detailVO.setLeaveStartDate(application.getLeaveStartDate());
-        detailVO.setLeaveEndDate(application.getLeaveEndDate());
-        detailVO.setContactPhone(application.getContactPhone());
-        detailVO.setFileId(application.getFileId());
-        detailVO.setRejectReason(application.getRejectReason());
-        detailVO.setSubmitTime(application.getSubmitTime());
-        detailVO.setApprovedAt(application.getApprovedAt());
-        if (application.getApprovedBy() != null) {
-            User approver = userMapper.selectById(application.getApprovedBy());
-            detailVO.setApprovedByName(approver == null ? "" : approver.getRealName());
-        }
-        detailVO.setTimelines(toTimelineList(application.getId()));
-        return detailVO;
+    @Override
+    public List<LeaveApplicationListItemVO> listForReviewer(Long reviewerId, Integer status) {
+        ensureReviewer(reviewerId);
+        return leaveApplicationMapper.selectAllLeaves(status).stream()
+                .map(this::toListItem)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public LeaveApplicationDetailVO getReviewerDetail(Long reviewerId, Long id) {
+        ensureReviewer(reviewerId);
+        LeaveApplication application = getLeaveById(id);
+        return toDetail(application);
     }
 
     @Override
@@ -167,6 +163,7 @@ public class LeaveServiceImpl implements LeaveService {
     private LeaveApplicationListItemVO toListItem(LeaveApplication application) {
         LeaveApplicationListItemVO vo = new LeaveApplicationListItemVO();
         vo.setId(application.getId());
+        vo.setUserId(application.getUserId());
         vo.setTitle(application.getTitle());
         vo.setReason(application.getReason());
         vo.setStatus(application.getStatus());
@@ -174,7 +171,41 @@ public class LeaveServiceImpl implements LeaveService {
         vo.setLeaveStartDate(application.getLeaveStartDate());
         vo.setLeaveEndDate(application.getLeaveEndDate());
         vo.setSubmitTime(application.getSubmitTime());
+        User applicant = userMapper.selectById(application.getUserId());
+        if (applicant != null) {
+            vo.setApplicantName(applicant.getRealName());
+            vo.setApplicantStudentNo(applicant.getStudentNo());
+        }
         return vo;
+    }
+
+    private LeaveApplicationDetailVO toDetail(LeaveApplication application) {
+        LeaveApplicationDetailVO detailVO = new LeaveApplicationDetailVO();
+        detailVO.setId(application.getId());
+        detailVO.setUserId(application.getUserId());
+        detailVO.setTitle(application.getTitle());
+        detailVO.setReason(application.getReason());
+        detailVO.setStatus(application.getStatus());
+        detailVO.setStatusText(getStatusText(application.getStatus()));
+        detailVO.setLeaveStartDate(application.getLeaveStartDate());
+        detailVO.setLeaveEndDate(application.getLeaveEndDate());
+        detailVO.setContactPhone(application.getContactPhone());
+        detailVO.setFileId(application.getFileId());
+        detailVO.setRejectReason(application.getRejectReason());
+        detailVO.setSubmitTime(application.getSubmitTime());
+        detailVO.setApprovedAt(application.getApprovedAt());
+
+        User applicant = userMapper.selectById(application.getUserId());
+        if (applicant != null) {
+            detailVO.setApplicantName(applicant.getRealName());
+            detailVO.setApplicantStudentNo(applicant.getStudentNo());
+        }
+        if (application.getApprovedBy() != null) {
+            User approver = userMapper.selectById(application.getApprovedBy());
+            detailVO.setApprovedByName(approver == null ? "" : approver.getRealName());
+        }
+        detailVO.setTimelines(toTimelineList(application.getId()));
+        return detailVO;
     }
 
     private List<LeaveTimelineVO> toTimelineList(Long applicationId) {

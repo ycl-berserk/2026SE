@@ -46,6 +46,18 @@ public class LeaveController {
         return Result.ok(leaveService.getMineDetail(userId, id));
     }
 
+    @GetMapping("/reviewer/applications")
+    public Result<List<LeaveApplicationListItemVO>> listForReviewer(@RequestParam(required = false) Integer status) {
+        Long reviewerId = StpUtil.getLoginIdAsLong();
+        return Result.ok(leaveService.listForReviewer(reviewerId, status));
+    }
+
+    @GetMapping("/reviewer/applications/{id}")
+    public Result<LeaveApplicationDetailVO> getReviewerDetail(@PathVariable Long id) {
+        Long reviewerId = StpUtil.getLoginIdAsLong();
+        return Result.ok(leaveService.getReviewerDetail(reviewerId, id));
+    }
+
     @PostMapping("/reviewer/applications/{id}/approve")
     public Result<Void> approve(@PathVariable Long id, @Valid @RequestBody LeaveReviewDTO reviewDTO) {
         Long reviewerId = StpUtil.getLoginIdAsLong();

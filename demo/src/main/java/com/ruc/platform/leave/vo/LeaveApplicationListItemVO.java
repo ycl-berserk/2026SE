@@ -13,6 +13,12 @@ public class LeaveApplicationListItemVO {
 
     private Long id;
 
+    private Long userId;
+
+    private String applicantName;
+
+    private String applicantStudentNo;
+
     private String title;
 
     private String reason;
