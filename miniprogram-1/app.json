@@ -1,12 +1,13 @@
 {
   "pages": [
     "pages/index/index",
+    "pages/knowledge/knowledge",
+    "pages/party-progress/party-progress",
+    "pages/profile/profile",
     "pages/leave-list/leave-list",
     "pages/leave-form/leave-form",
     "pages/leave-detail/leave-detail",
-    "pages/knowledge/knowledge",
     "pages/knowledge-detail/knowledge-detail",
-    "pages/party-progress/party-progress",
     "pages/logs/logs"
   ],
   "window": {
@@ -14,6 +15,30 @@
     "navigationBarTitleText": "学院学生服务平台",
     "navigationBarBackgroundColor": "#f6fbff",
     "backgroundColor": "#f2f5f9"
+  },
+  "tabBar": {
+    "color": "#64748b",
+    "selectedColor": "#123c63",
+    "backgroundColor": "#ffffff",
+    "borderStyle": "black",
+    "list": [
+      {
+        "pagePath": "pages/index/index",
+        "text": "首页"
+      },
+      {
+        "pagePath": "pages/knowledge/knowledge",
+        "text": "通知"
+      },
+      {
+        "pagePath": "pages/party-progress/party-progress",
+        "text": "党团事务"
+      },
+      {
+        "pagePath": "pages/profile/profile",
+        "text": "个人中心"
+      }
+    ]
   },
   "style": "v2",
   "componentFramework": "glass-easel",

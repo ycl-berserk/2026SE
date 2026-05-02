@@ -2,6 +2,13 @@ const { homeData } = require('../../utils/mock-data')
 const { ensureLogin } = require('../../utils/auth')
 const { request } = require('../../utils/request')
 
+const TAB_PAGES = [
+  '/pages/index/index',
+  '/pages/knowledge/knowledge',
+  '/pages/party-progress/party-progress',
+  '/pages/profile/profile',
+]
+
 Page({
   data: {
     banner: homeData.banner,
@@ -111,7 +118,8 @@ Page({
     const { path, title } = event.currentTarget.dataset
 
     if (path) {
-      wx.navigateTo({ url: path })
+      const navigate = TAB_PAGES.includes(path) ? wx.switchTab : wx.navigateTo
+      navigate({ url: path })
       return
     }
 

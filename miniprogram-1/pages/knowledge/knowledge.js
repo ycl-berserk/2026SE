@@ -6,8 +6,20 @@ const { BASE_URL, TOKEN_KEY } = require('../../utils/config')
 Page({
   data: {
     keyword: '',
+    leaveActions: [
+      {
+        title: '发起请假',
+        desc: '填写请假时间、事由与联系方式',
+        path: '/pages/leave-form/leave-form',
+      },
+      {
+        title: '我的请假',
+        desc: '查看申请记录与当前审批进度',
+        path: '/pages/leave-list/leave-list',
+      },
+    ],
     categories: knowledgeBaseData.categories,
-    selectedCategory: '全部',
+    selectedCategory: '鍏ㄩ儴',
     articles: knowledgeBaseData.articles,
     visibleArticles: knowledgeBaseData.articles,
     templates: knowledgeBaseData.templates,
@@ -36,7 +48,7 @@ Page({
         keywords: [item.title, item.summary || ''].join(' ').split(/\s+/).filter(Boolean),
       }))
 
-      const categories = ['全部', ...new Set(articles.map((item) => item.category))]
+      const categories = ['鍏ㄩ儴', ...new Set(articles.map((item) => item.category))]
       const templates = (templateData || []).map((item) => ({
         id: item.id,
         name: item.name,
@@ -47,7 +59,7 @@ Page({
 
       this.setData({
         categories,
-        selectedCategory: '全部',
+        selectedCategory: '鍏ㄩ儴',
         articles,
         visibleArticles: articles,
         templates,
@@ -82,7 +94,7 @@ Page({
     const normalizedKeyword = keyword.toLowerCase()
 
     const visibleArticles = articles.filter((item) => {
-      const matchCategory = selectedCategory === '全部' || item.category === selectedCategory
+      const matchCategory = selectedCategory === '鍏ㄩ儴' || item.category === selectedCategory
       const matchKeyword = !normalizedKeyword
         || item.title.toLowerCase().includes(normalizedKeyword)
         || item.summary.toLowerCase().includes(normalizedKeyword)
@@ -92,6 +104,15 @@ Page({
     })
 
     this.setData({ visibleArticles })
+  },
+
+  onLeaveActionTap(event) {
+    const { path } = event.currentTarget.dataset
+    if (!path) {
+      return
+    }
+
+    wx.navigateTo({ url: path })
   },
 
   onTemplateTap(event) {
