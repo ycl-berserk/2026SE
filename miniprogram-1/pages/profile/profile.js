@@ -1,3 +1,6 @@
+const { ensureLogin, logout, setCurrentUser } = require('../../utils/auth')
+const { request } = require('../../utils/request')
+
 const TAB_PAGES = [
   '/pages/index/index',
   '/pages/knowledge/knowledge',
@@ -7,11 +10,26 @@ const TAB_PAGES = [
 
 Page({
   data: {
+    loading: false,
+    saving: false,
+    authTypeOptions: [
+      { label: '普通学生', value: 'student' },
+      { label: '学生骨干', value: 'cadre' },
+    ],
+    authTypeIndex: 0,
     profile: {
-      name: '演示用户',
-      studentId: '20230001',
-      department: '软件工程学院',
-      className: '2023级 1班',
+      realName: '',
+      studentNo: '',
+      phone: '',
+      email: '',
+      grade: '',
+      major: '',
+      className: '',
+      authType: 'student',
+      bio: '',
+      hometown: '',
+      dormitory: '',
+      politicalStatus: '',
     },
     shortcuts: [
       {
@@ -30,11 +48,103 @@ Page({
         path: '/pages/party-progress/party-progress',
       },
     ],
-    serviceInfo: [
-      { label: '账号状态', value: '已登录' },
-      { label: '身份角色', value: '学生' },
-      { label: '当前版本', value: 'V1' },
-    ],
+  },
+
+  onShow() {
+    this.loadProfile()
+  },
+
+  async loadProfile() {
+    this.setData({ loading: true })
+    try {
+      await ensureLogin()
+      const profile = await request({ url: '/api/student/profile' })
+      const authTypeIndex = this.data.authTypeOptions.findIndex((item) => item.value === profile.authType)
+
+      this.setData({
+        profile,
+        authTypeIndex: authTypeIndex >= 0 ? authTypeIndex : 0,
+      })
+    } catch (error) {
+      if (error.code !== 'NOT_LOGGED_IN') {
+        wx.showToast({
+          title: error.message || '加载失败',
+          icon: 'none',
+        })
+      }
+    } finally {
+      this.setData({ loading: false })
+    }
+  },
+
+  onFieldInput(event) {
+    const { field } = event.currentTarget.dataset
+    this.setData({
+      [`profile.${field}`]: event.detail.value,
+    })
+  },
+
+  onAuthTypeChange(event) {
+    const authTypeIndex = Number(event.detail.value)
+    this.setData({
+      authTypeIndex,
+      'profile.authType': this.data.authTypeOptions[authTypeIndex].value,
+    })
+  },
+
+  async onSave() {
+    const { profile } = this.data
+    if (!profile.realName.trim()) {
+      wx.showToast({
+        title: '姓名不能为空',
+        icon: 'none',
+      })
+      return
+    }
+
+    this.setData({ saving: true })
+    try {
+      const savedProfile = await request({
+        url: '/api/student/profile',
+        method: 'PUT',
+        data: {
+          realName: profile.realName.trim(),
+          phone: (profile.phone || '').trim(),
+          email: (profile.email || '').trim(),
+          grade: (profile.grade || '').trim(),
+          major: (profile.major || '').trim(),
+          className: (profile.className || '').trim(),
+          politicalStatus: (profile.politicalStatus || '').trim(),
+          authType: profile.authType,
+          bio: (profile.bio || '').trim(),
+          hometown: (profile.hometown || '').trim(),
+          dormitory: (profile.dormitory || '').trim(),
+        },
+      })
+
+      this.setData({ profile: savedProfile })
+      const currentUser = getApp().globalData.userInfo || {}
+      setCurrentUser({
+        ...currentUser,
+        realName: savedProfile.realName,
+        studentNo: savedProfile.studentNo,
+        authType: savedProfile.authType,
+        className: savedProfile.className,
+        avatarUrl: savedProfile.avatarUrl || '',
+      })
+
+      wx.showToast({
+        title: '保存成功',
+        icon: 'success',
+      })
+    } catch (error) {
+      wx.showToast({
+        title: error.message || '保存失败',
+        icon: 'none',
+      })
+    } finally {
+      this.setData({ saving: false })
+    }
   },
 
   onShortcutTap(event) {
@@ -45,5 +155,9 @@ Page({
 
     const navigate = TAB_PAGES.includes(path) ? wx.switchTab : wx.navigateTo
     navigate({ url: path })
+  },
+
+  onLogout() {
+    logout()
   },
 })

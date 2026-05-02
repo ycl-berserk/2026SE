@@ -1,15 +1,72 @@
 <view class="page">
   <view class="profile-card">
     <view class="profile-eyebrow">PERSONAL CENTER</view>
-    <view class="profile-name">{{profile.name}}</view>
-    <view class="profile-meta">{{profile.department}}</view>
-    <view class="profile-meta">{{profile.className}}</view>
-    <view class="profile-id">学号：{{profile.studentId}}</view>
+    <view class="profile-name">{{profile.realName || '未设置姓名'}}</view>
+    <view class="profile-meta">{{profile.major || '未设置专业'}} {{profile.className || ''}}</view>
+    <view class="profile-id">学号：{{profile.studentNo || '--'}}</view>
   </view>
 
   <view class="section">
+    <view class="section-title">个人资料</view>
+    <view class="section-desc">这些信息会与当前账号绑定并持久化保存在数据库中。</view>
+
+    <view class="field">
+      <view class="label">姓名</view>
+      <input class="input" data-field="realName" value="{{profile.realName}}" bindinput="onFieldInput" />
+    </view>
+    <view class="field">
+      <view class="label">学号</view>
+      <input class="input input-disabled" value="{{profile.studentNo}}" disabled />
+    </view>
+    <view class="field">
+      <view class="label">身份类型</view>
+      <picker range="{{authTypeOptions}}" range-key="label" value="{{authTypeIndex}}" bindchange="onAuthTypeChange">
+        <view class="picker">{{authTypeOptions[authTypeIndex].label}}</view>
+      </picker>
+    </view>
+    <view class="field">
+      <view class="label">年级</view>
+      <input class="input" data-field="grade" value="{{profile.grade}}" bindinput="onFieldInput" />
+    </view>
+    <view class="field">
+      <view class="label">专业</view>
+      <input class="input" data-field="major" value="{{profile.major}}" bindinput="onFieldInput" />
+    </view>
+    <view class="field">
+      <view class="label">班级</view>
+      <input class="input" data-field="className" value="{{profile.className}}" bindinput="onFieldInput" />
+    </view>
+    <view class="field">
+      <view class="label">手机号</view>
+      <input class="input" data-field="phone" value="{{profile.phone}}" bindinput="onFieldInput" />
+    </view>
+    <view class="field">
+      <view class="label">邮箱</view>
+      <input class="input" data-field="email" value="{{profile.email}}" bindinput="onFieldInput" />
+    </view>
+    <view class="field">
+      <view class="label">政治面貌</view>
+      <input class="input" data-field="politicalStatus" value="{{profile.politicalStatus}}" bindinput="onFieldInput" />
+    </view>
+    <view class="field">
+      <view class="label">生源地</view>
+      <input class="input" data-field="hometown" value="{{profile.hometown}}" bindinput="onFieldInput" />
+    </view>
+    <view class="field">
+      <view class="label">宿舍</view>
+      <input class="input" data-field="dormitory" value="{{profile.dormitory}}" bindinput="onFieldInput" />
+    </view>
+    <view class="field">
+      <view class="label">个人介绍</view>
+      <textarea class="textarea" data-field="bio" maxlength="300" value="{{profile.bio}}" bindinput="onFieldInput" />
+    </view>
+
+    <button class="save-btn" loading="{{saving}}" bindtap="onSave">保存资料</button>
+    <button class="logout-btn" bindtap="onLogout">退出登录</button>
+  </view>
+
+  <view class="section section-last">
     <view class="section-title">常用入口</view>
-    <view class="section-desc">统一放置个人高频使用的业务入口。</view>
     <view class="shortcut-list">
       <view
         wx:for="{{shortcuts}}"
@@ -23,16 +80,6 @@
           <view class="shortcut-desc">{{item.desc}}</view>
         </view>
         <view class="shortcut-action">进入</view>
-      </view>
-    </view>
-  </view>
-
-  <view class="section section-last">
-    <view class="section-title">账号信息</view>
-    <view class="info-list">
-      <view wx:for="{{serviceInfo}}" wx:key="label" class="info-item">
-        <view class="info-label">{{item.label}}</view>
-        <view class="info-value">{{item.value}}</view>
       </view>
     </view>
   </view>

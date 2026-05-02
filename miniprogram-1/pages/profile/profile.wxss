@@ -53,24 +53,75 @@
 }
 
 .section-desc,
-.shortcut-desc,
-.info-label {
+.shortcut-desc {
   margin-top: 10rpx;
   font-size: 24rpx;
   line-height: 1.7;
   color: #475569;
 }
 
-.shortcut-list,
-.info-list {
+.field {
+  margin-top: 20rpx;
+}
+
+.label {
+  font-size: 26rpx;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.input,
+.picker,
+.textarea {
+  width: 100%;
+  margin-top: 14rpx;
+  border-radius: 22rpx;
+  background: #f8fafc;
+  font-size: 26rpx;
+}
+
+.input,
+.picker {
+  height: 84rpx;
+  padding: 0 24rpx;
+  line-height: 84rpx;
+}
+
+.input-disabled {
+  color: #94a3b8;
+}
+
+.textarea {
+  min-height: 180rpx;
+  padding: 22rpx 24rpx;
+}
+
+.save-btn,
+.logout-btn {
+  height: 84rpx;
+  margin-top: 24rpx;
+  border-radius: 22rpx;
+  line-height: 84rpx;
+}
+
+.save-btn {
+  color: #ffffff;
+  background: #123c63;
+}
+
+.logout-btn {
+  color: #b91c1c;
+  background: rgba(185, 28, 28, 0.1);
+}
+
+.shortcut-list {
   display: flex;
   flex-direction: column;
   gap: 16rpx;
   margin-top: 20rpx;
 }
 
-.shortcut-card,
-.info-item {
+.shortcut-card {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -80,8 +131,7 @@
   background: #f8fafc;
 }
 
-.shortcut-title,
-.info-value {
+.shortcut-title {
   font-size: 28rpx;
   font-weight: 700;
   color: #0f172a;

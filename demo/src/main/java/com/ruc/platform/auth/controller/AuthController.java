@@ -1,5 +1,7 @@
 package com.ruc.platform.auth.controller;
 
+import com.ruc.platform.auth.dto.AccountLoginDTO;
+import com.ruc.platform.auth.dto.AccountRegisterDTO;
 import com.ruc.platform.auth.dto.WxLoginDTO;
 import com.ruc.platform.auth.service.AuthService;
 import com.ruc.platform.auth.vo.LoginVO;
@@ -10,10 +12,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 
-/**
- * 认证控制器
- * 处理微信登录、用户信息查询、退出登录等认证相关请求
- */
 @Slf4j
 @RestController
 @RequestMapping("/api/auth")
@@ -22,40 +20,30 @@ public class AuthController {
 
     private final AuthService authService;
 
-    /**
-     * 微信登录接口
-     * 小程序端调用，换取平台token
-     * 
-     * @param wxLoginDTO 微信登录参数
-     * @return 登录结果（token、用户信息、是否需要绑定）
-     */
+    @PostMapping("/register")
+    public Result<LoginVO> register(@Valid @RequestBody AccountRegisterDTO registerDTO) {
+        log.info("收到账号注册请求，studentNo: {}", registerDTO.getStudentNo());
+        return Result.ok(authService.register(registerDTO));
+    }
+
+    @PostMapping("/login")
+    public Result<LoginVO> login(@Valid @RequestBody AccountLoginDTO loginDTO) {
+        log.info("收到账号登录请求，studentNo: {}", loginDTO.getStudentNo());
+        return Result.ok(authService.login(loginDTO));
+    }
+
     @PostMapping("/wx-login")
     public Result<LoginVO> wxLogin(@Valid @RequestBody WxLoginDTO wxLoginDTO) {
-        log.info("收到微信登录请求");
-        LoginVO loginVO = authService.wxLogin(wxLoginDTO);
-        return Result.ok(loginVO);
+        return Result.ok(authService.wxLogin(wxLoginDTO));
     }
 
-    /**
-     * 获取当前登录用户信息
-     * 需要登录态，从token中解析用户ID
-     * 
-     * @return 用户信息
-     */
     @GetMapping("/me")
     public Result<UserVO> getCurrentUser() {
-        log.info("获取当前用户信息");
-        UserVO userVO = authService.getCurrentUser();
-        return Result.ok(userVO);
+        return Result.ok(authService.getCurrentUser());
     }
 
-    /**
-     * 退出登录
-     * 清除当前用户的token
-     */
     @PostMapping("/logout")
     public Result<Void> logout() {
-        log.info("退出登录");
         authService.logout();
         return Result.ok();
     }

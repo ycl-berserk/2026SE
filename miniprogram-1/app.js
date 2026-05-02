@@ -1,21 +1,17 @@
-const { ensureLogin } = require('./utils/auth')
+const { getSession, redirectToLogin } = require('./utils/auth')
 
 App({
-  async onLaunch() {
+  onLaunch() {
     const logs = wx.getStorageSync('logs') || []
     logs.unshift(Date.now())
     wx.setStorageSync('logs', logs)
 
-    try {
-      const loginResult = await ensureLogin()
-      this.globalData.userInfo = loginResult.user || null
-      this.globalData.token = loginResult.token || ''
-    } catch (error) {
-      console.error('Initial login failed:', error)
-      wx.showToast({
-        title: '后端连接失败',
-        icon: 'none',
-      })
+    const { token, user } = getSession()
+    this.globalData.userInfo = user || null
+    this.globalData.token = token || ''
+
+    if (!token) {
+      redirectToLogin()
     }
   },
 

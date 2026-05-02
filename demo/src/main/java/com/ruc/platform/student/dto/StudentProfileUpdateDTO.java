@@ -2,29 +2,30 @@ package com.ruc.platform.student.dto;
 
 import lombok.Data;
 
-/**
- * 学生档案更新DTO
- */
 @Data
 public class StudentProfileUpdateDTO {
 
-    /**
-     * 性别：1-男，2-女
-     */
+    private String realName;
+
+    private String phone;
+
+    private String email;
+
     private Integer gender;
 
-    /**
-     * 个人简介
-     */
+    private String grade;
+
+    private String major;
+
+    private String className;
+
+    private String politicalStatus;
+
+    private String authType;
+
     private String bio;
 
-    /**
-     * 生源地
-     */
     private String hometown;
 
-    /**
-     * 宿舍号
-     */
     private String dormitory;
 }

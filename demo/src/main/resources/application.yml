@@ -5,16 +5,12 @@ spring:
   application:
     name: ruc-service-platform
   profiles:
-    # 默认使用 h2 配置文件，便于本地 demo 最小化启动
-    # 可通过 --spring.profiles.active=postgres 或 kingbase 切换数据库
-    active: h2
+    active: postgres
   servlet:
     multipart:
       max-file-size: 20MB
       max-request-size: 20MB
-  # Flyway 配置已移至各环境配置文件（application-h2.yml / application-postgres.yml / application-kingbase.yml）
 
-# MyBatis-Plus 配置
 mybatis-plus:
   mapper-locations: classpath*:mapper/**/*.xml
   type-aliases-package: com.ruc.platform.**.entity
@@ -29,7 +25,6 @@ mybatis-plus:
       logic-not-delete-value: 0
       db-type: postgresql
 
-# Sa-Token 配置
 sa-token:
   token-name: Authorization
   timeout: 2592000
@@ -39,17 +34,14 @@ sa-token:
   token-style: uuid
   is-log: false
 
-# 微信登录配置（需要替换为真实的小程序AppID和AppSecret）
 wechat:
   miniapp:
     appid: wx9bb70b9dffc64858
     secret: c3e517aa09806f5546efface6d24af21
 
-# 文件上传配置
 file:
   upload-path: ${user.home}/ruc-platform/uploads
 
-# 日志配置
 logging:
   level:
     com.ruc.platform: debug

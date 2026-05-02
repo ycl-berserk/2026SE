@@ -44,16 +44,12 @@ async function request(options) {
   try {
     return await doRequest(options)
   } catch (error) {
-    const authExpired = error && (error.statusCode === 401 || error.code === 40100)
+    const authExpired = error && (error.statusCode === 401 || error.code === 40100 || error.code === 40101)
 
-    if (options.withAuth !== false && authExpired && !options.__retried) {
-      const { clearLoginState, ensureLogin } = require('./auth')
+    if (options.withAuth !== false && authExpired) {
+      const { clearLoginState, redirectToLogin } = require('./auth')
       clearLoginState()
-      await ensureLogin(true)
-      return doRequest({
-        ...options,
-        __retried: true,
-      })
+      redirectToLogin()
     }
 
     throw error

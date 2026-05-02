@@ -1,24 +1,56 @@
 const { request } = require('./request')
-const { TOKEN_KEY, USER_KEY, DEMO_LOGIN_CODE } = require('./config')
+const { TOKEN_KEY, USER_KEY, LOGIN_PAGE } = require('./config')
 
-function wxLogin() {
-  return new Promise((resolve, reject) => {
-    wx.login({
-      success: (res) => {
-        if (res.code) {
-          resolve(res.code)
-          return
-        }
-        reject(new Error('No wx login code returned'))
-      },
-      fail: reject,
-    })
-  })
+function getSession() {
+  const token = wx.getStorageSync(TOKEN_KEY)
+  const user = wx.getStorageSync(USER_KEY)
+  return {
+    token,
+    user,
+  }
+}
+
+function setSession(loginData) {
+  wx.setStorageSync(TOKEN_KEY, loginData.token)
+  wx.setStorageSync(USER_KEY, loginData.user || null)
+
+  const app = getApp()
+  if (app && app.globalData) {
+    app.globalData.token = loginData.token || ''
+    app.globalData.userInfo = loginData.user || null
+  }
+}
+
+function setCurrentUser(user) {
+  wx.setStorageSync(USER_KEY, user || null)
+
+  const app = getApp()
+  if (app && app.globalData) {
+    app.globalData.userInfo = user || null
+  }
 }
 
 function clearLoginState() {
   wx.removeStorageSync(TOKEN_KEY)
   wx.removeStorageSync(USER_KEY)
+
+  const app = getApp()
+  if (app && app.globalData) {
+    app.globalData.token = ''
+    app.globalData.userInfo = null
+  }
+}
+
+function redirectToLogin() {
+  const pages = getCurrentPages()
+  const currentRoute = pages.length ? `/${pages[pages.length - 1].route}` : ''
+  if (currentRoute === LOGIN_PAGE) {
+    return
+  }
+
+  wx.reLaunch({
+    url: LOGIN_PAGE,
+  })
 }
 
 async function ensureLogin(force = false) {
@@ -26,48 +58,79 @@ async function ensureLogin(force = false) {
     clearLoginState()
   }
 
-  const cachedToken = wx.getStorageSync(TOKEN_KEY)
-  const cachedUser = wx.getStorageSync(USER_KEY)
+  const { token, user } = getSession()
 
-  if (!force && cachedToken && cachedUser) {
+  if (token && user) {
+    return { token, user }
+  }
+
+  if (token) {
+    const currentUser = await request({ url: '/api/auth/me' })
+    setCurrentUser(currentUser)
     return {
-      token: cachedToken,
-      user: cachedUser,
+      token,
+      user: currentUser,
     }
   }
 
-  let code = DEMO_LOGIN_CODE
+  redirectToLogin()
+  const error = new Error('NOT_LOGGED_IN')
+  error.code = 'NOT_LOGGED_IN'
+  throw error
+}
 
-  try {
-    const wxCode = await wxLogin()
-    if (wxCode) {
-      code = wxCode
-    }
-  } catch (error) {
-    console.warn('wx.login failed, fallback to demo code:', error)
-  }
-
+async function login(payload) {
   const loginData = await request({
-    url: '/api/auth/wx-login',
+    url: '/api/auth/login',
     method: 'POST',
-    data: { code },
+    data: payload,
     header: {
       'Content-Type': 'application/json',
     },
     withAuth: false,
   })
 
-  if (!loginData || loginData.needBind || !loginData.token) {
-    throw new Error('Login failed or account needs bind')
-  }
-
-  wx.setStorageSync(TOKEN_KEY, loginData.token)
-  wx.setStorageSync(USER_KEY, loginData.user || null)
-
+  setSession(loginData)
   return loginData
 }
 
+async function register(payload) {
+  const loginData = await request({
+    url: '/api/auth/register',
+    method: 'POST',
+    data: payload,
+    header: {
+      'Content-Type': 'application/json',
+    },
+    withAuth: false,
+  })
+
+  setSession(loginData)
+  return loginData
+}
+
+async function logout() {
+  try {
+    const { token } = getSession()
+    if (token) {
+      await request({
+        url: '/api/auth/logout',
+        method: 'POST',
+      })
+    }
+  } finally {
+    clearLoginState()
+    redirectToLogin()
+  }
+}
+
 module.exports = {
-  ensureLogin,
   clearLoginState,
+  ensureLogin,
+  getSession,
+  login,
+  logout,
+  redirectToLogin,
+  register,
+  setCurrentUser,
 }

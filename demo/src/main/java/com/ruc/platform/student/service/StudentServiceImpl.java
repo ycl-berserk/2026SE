@@ -21,6 +21,9 @@ import java.time.LocalDateTime;
 @RequiredArgsConstructor
 public class StudentServiceImpl implements StudentService {
 
+    private static final String AUTH_TYPE_STUDENT = "student";
+    private static final String AUTH_TYPE_CADRE = "cadre";
+
     private final StudentProfileMapper studentProfileMapper;
     private final UserMapper userMapper;
 
@@ -41,21 +44,31 @@ public class StudentServiceImpl implements StudentService {
             throw new BizException(ResultCode.NOT_FOUND, "学生档案不存在");
         }
 
+        User user = userMapper.selectById(userId);
+        if (user == null) {
+            throw new BizException(ResultCode.NOT_FOUND, "用户不存在");
+        }
+
+        user.setRealName(fallback(updateDTO.getRealName(), user.getRealName()));
+        user.setPhone(fallback(updateDTO.getPhone(), user.getPhone()));
+        user.setEmail(fallback(updateDTO.getEmail(), user.getEmail()));
+        user.setUpdatedAt(LocalDateTime.now());
+        userMapper.updateById(user);
+
         if (updateDTO.getGender() != null) {
             profile.setGender(updateDTO.getGender());
         }
-        if (updateDTO.getBio() != null) {
-            profile.setBio(updateDTO.getBio());
-        }
-        if (updateDTO.getHometown() != null) {
-            profile.setHometown(updateDTO.getHometown());
-        }
-        if (updateDTO.getDormitory() != null) {
-            profile.setDormitory(updateDTO.getDormitory());
-        }
-
+        profile.setGrade(fallback(updateDTO.getGrade(), profile.getGrade()));
+        profile.setMajor(fallback(updateDTO.getMajor(), profile.getMajor()));
+        profile.setClassName(fallback(updateDTO.getClassName(), profile.getClassName()));
+        profile.setPoliticalStatus(fallback(updateDTO.getPoliticalStatus(), profile.getPoliticalStatus()));
+        profile.setAuthType(normalizeAuthType(fallback(updateDTO.getAuthType(), profile.getAuthType())));
+        profile.setBio(fallback(updateDTO.getBio(), profile.getBio()));
+        profile.setHometown(fallback(updateDTO.getHometown(), profile.getHometown()));
+        profile.setDormitory(fallback(updateDTO.getDormitory(), profile.getDormitory()));
         profile.setUpdatedAt(LocalDateTime.now());
         studentProfileMapper.updateById(profile);
+
         log.info("更新学生档案成功，userId: {}", userId);
         return convertToVO(profile);
     }
@@ -66,7 +79,24 @@ public class StudentServiceImpl implements StudentService {
         User user = userMapper.selectById(profile.getUserId());
         if (user != null) {
             vo.setRealName(user.getRealName());
+            vo.setPhone(user.getPhone());
+            vo.setEmail(user.getEmail());
         }
         return vo;
+    }
+
+    private String normalizeAuthType(String authType) {
+        String normalized = authType == null ? "" : authType.trim();
+        if (normalized.isEmpty() || AUTH_TYPE_STUDENT.equalsIgnoreCase(normalized)) {
+            return AUTH_TYPE_STUDENT;
+        }
+        if (AUTH_TYPE_CADRE.equalsIgnoreCase(normalized)) {
+            return AUTH_TYPE_CADRE;
+        }
+        throw new BizException(ResultCode.PARAM_ERROR, "身份类型仅支持 student 或 cadre");
+    }
+
+    private String fallback(String incoming, String current) {
+        return incoming == null ? current : incoming.trim();
     }
 }
