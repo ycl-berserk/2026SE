@@ -7,8 +7,6 @@ import com.ruc.platform.home.mapper.UserQuickEntryMapper;
 import com.ruc.platform.home.vo.LatestNoticeVO;
 import com.ruc.platform.home.vo.HomeVO;
 import com.ruc.platform.home.vo.TodoStatsVO;
-import com.ruc.platform.knowledgeness.entity.KnowledgeArticle;
-import com.ruc.platform.knowledgeness.mapper.KnowledgeArticleMapper;
 import com.ruc.platform.knowledgeness.entity.KnowledgeTemplate;
 import com.ruc.platform.knowledgeness.mapper.KnowledgeTemplateMapper;
 import com.ruc.platform.notice.entity.Notice;
@@ -44,7 +42,6 @@ public class HomeServiceImpl implements HomeService {
     private final RoleAccessService roleAccessService;
     private final HomeBannerMapper homeBannerMapper;
     private final UserQuickEntryMapper userQuickEntryMapper;
-    private final KnowledgeArticleMapper knowledgeArticleMapper;
 
     private static final Map<String, Map<String, String>> ALL_SERVICE_MAP = new LinkedHashMap<>();
     static {
@@ -90,82 +87,20 @@ public class HomeServiceImpl implements HomeService {
                         .eq(HomeBanner::getStatus, 1)
                         .orderByAsc(HomeBanner::getSortOrder)
         );
-        if (banners != null && !banners.isEmpty()) {
-            return banners.stream().map(b -> {
-                Map<String, Object> m = new HashMap<>();
-                m.put("id", b.getId());
-                m.put("title", b.getTitle());
-                m.put("subtitle", b.getSubtitle());
-                m.put("imageUrl", b.getImageUrl());
-                m.put("targetType", b.getTargetType());
-                m.put("targetId", b.getTargetId());
-                m.put("targetPath", b.getTargetPath());
-                return m;
-            }).collect(Collectors.toList());
+        if (banners == null || banners.isEmpty()) {
+            return Collections.emptyList();
         }
-
-        List<KnowledgeArticle> articles = knowledgeArticleMapper.selectList(
-                new LambdaQueryWrapper<KnowledgeArticle>()
-                        .eq(KnowledgeArticle::getIsBanner, true)
-                        .eq(KnowledgeArticle::getStatus, 1)
-                        .orderByDesc(KnowledgeArticle::getPublishTime)
-                        .last("LIMIT 5")
-        );
-        if (articles != null && !articles.isEmpty()) {
-            return articles.stream().map(a -> {
-                Map<String, Object> m = new HashMap<>();
-                m.put("id", a.getId());
-                m.put("title", a.getTitle());
-                m.put("subtitle", a.getSummary());
-                m.put("imageUrl", null);
-                m.put("targetType", "knowledge");
-                m.put("targetId", a.getId());
-                m.put("targetPath", null);
-                return m;
-            }).collect(Collectors.toList());
-        }
-
-        List<Notice> notices = noticeMapper.selectList(
-                new LambdaQueryWrapper<Notice>()
-                        .eq(Notice::getIsBanner, true)
-                        .eq(Notice::getStatus, 1)
-                        .orderByDesc(Notice::getPublishTime)
-                        .last("LIMIT 3")
-        );
-        if (notices != null && !notices.isEmpty()) {
-            return notices.stream().map(n -> {
-                Map<String, Object> m = new HashMap<>();
-                m.put("id", n.getId());
-                m.put("title", n.getTitle());
-                m.put("subtitle", n.getSummary());
-                m.put("imageUrl", null);
-                m.put("targetType", "notice");
-                m.put("targetId", n.getId());
-                m.put("targetPath", null);
-                return m;
-            }).collect(Collectors.toList());
-        }
-
-        List<Map<String, Object>> fallback = new ArrayList<>();
-        Map<String, Object> fb1 = new HashMap<>();
-        fb1.put("id", 0);
-        fb1.put("title", "欢迎使用学院服务平台");
-        fb1.put("subtitle", "便捷获取政策信息与党团服务");
-        fb1.put("targetType", "none");
-        fallback.add(fb1);
-        Map<String, Object> fb2 = new HashMap<>();
-        fb2.put("id", 1);
-        fb2.put("title", "知识库全新上线");
-        fb2.put("subtitle", "查询政策说明、办事指南与模板材料");
-        fb2.put("targetType", "none");
-        fallback.add(fb2);
-        Map<String, Object> fb3 = new HashMap<>();
-        fb3.put("id", 2);
-        fb3.put("title", "党团事务一站式办理");
-        fb3.put("subtitle", "入党流程追踪、思想汇报在线提交");
-        fb3.put("targetType", "none");
-        fallback.add(fb3);
-        return fallback;
+        return banners.stream().map(b -> {
+            Map<String, Object> m = new HashMap<>();
+            m.put("id", b.getId());
+            m.put("title", b.getTitle());
+            m.put("subtitle", b.getSubtitle());
+            m.put("imageUrl", b.getImageUrl());
+            m.put("targetType", b.getTargetType());
+            m.put("targetId", b.getTargetId());
+            m.put("targetPath", b.getTargetPath());
+            return m;
+        }).collect(Collectors.toList());
     }
 
     private List<Map<String, String>> getUserQuickEntries(Long userId) {

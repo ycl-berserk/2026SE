@@ -1,5 +1,6 @@
 package com.ruc.platform.admin.notice.service;
 
+import cn.dev33.satoken.stp.StpUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.ruc.platform.admin.notice.dto.NoticeCreateDTO;
 import com.ruc.platform.admin.notice.dto.NoticeQueryDTO;
@@ -13,6 +14,8 @@ import com.ruc.platform.admin.notice.vo.NoticeTargetEstimateVO;
 import com.ruc.platform.common.api.PageResult;
 import com.ruc.platform.common.api.ResultCode;
 import com.ruc.platform.common.exception.BizException;
+import com.ruc.platform.home.entity.HomeBanner;
+import com.ruc.platform.home.mapper.HomeBannerMapper;
 import com.ruc.platform.notice.entity.Notice;
 import com.ruc.platform.notice.entity.UserMessage;
 import com.ruc.platform.notice.mapper.NoticeMapper;
@@ -48,6 +51,7 @@ public class AdminNoticeServiceImpl implements AdminNoticeService {
     private final NoticeMapper noticeMapper;
     private final UserMessageMapper userMessageMapper;
     private final StudentProfileMapper studentProfileMapper;
+    private final HomeBannerMapper homeBannerMapper;
     private final ObjectMapper objectMapper;
     private final KnowledgeLocalSearchService localSearchService;
 
@@ -87,10 +91,20 @@ public class AdminNoticeServiceImpl implements AdminNoticeService {
     @Transactional
     public NoticeDetailVO updateNotice(Long id, NoticeUpdateDTO updateDTO) {
         Notice notice = requireNotice(id);
+        boolean bannerChanged = !Boolean.TRUE.equals(notice.getIsBanner()) == Boolean.TRUE.equals(updateDTO.getIsBanner());
         applyUpdateFields(notice, updateDTO);
         noticeMapper.updateById(notice);
-        if (Integer.valueOf(STATUS_PUBLISHED).equals(notice.getStatus()) && localSearchService != null) {
-            localSearchService.indexNotice(notice);
+        if (Integer.valueOf(STATUS_PUBLISHED).equals(notice.getStatus())) {
+            if (bannerChanged) {
+                if (Boolean.TRUE.equals(notice.getIsBanner())) {
+                    syncBannerForNotice(notice, StpUtil.getLoginIdAsLong());
+                } else {
+                    removeBannerForNotice(notice.getId());
+                }
+            }
+            if (localSearchService != null) {
+                localSearchService.indexNotice(notice);
+            }
         }
         return toDetailVO(noticeMapper.selectById(id));
     }
@@ -134,6 +148,9 @@ public class AdminNoticeServiceImpl implements AdminNoticeService {
             message.setReadStatus(0);
             message.setCreatedAt(now);
             userMessageMapper.insert(message);
+        }
+        if (Boolean.TRUE.equals(notice.getIsBanner())) {
+            syncBannerForNotice(notice, publisherId);
         }
         if (localSearchService != null) {
             localSearchService.indexNotice(notice);
@@ -183,6 +200,7 @@ public class AdminNoticeServiceImpl implements AdminNoticeService {
         notice.setStatus(STATUS_OFFLINE);
         notice.setUpdatedAt(LocalDateTime.now());
         noticeMapper.updateById(notice);
+        removeBannerForNotice(id);
         if (localSearchService != null) {
             localSearchService.deleteSource("notice", id);
         }
@@ -200,6 +218,42 @@ public class AdminNoticeServiceImpl implements AdminNoticeService {
             throw new BizException(ResultCode.BIZ_ERROR, "通知已有投递记录，暂不支持删除");
         }
         noticeMapper.deleteById(id);
+    }
+
+    private void syncBannerForNotice(Notice notice, Long operatorId) {
+        HomeBanner existing = homeBannerMapper.selectOne(
+                new LambdaQueryWrapper<HomeBanner>()
+                        .eq(HomeBanner::getTargetType, "notice")
+                        .eq(HomeBanner::getTargetId, notice.getId())
+                        .last("LIMIT 1")
+        );
+        if (existing != null) {
+            existing.setTitle(notice.getTitle());
+            existing.setSubtitle(notice.getSummary());
+            existing.setUpdatedBy(operatorId);
+            existing.setUpdatedAt(LocalDateTime.now());
+            homeBannerMapper.updateById(existing);
+            return;
+        }
+        HomeBanner banner = new HomeBanner();
+        banner.setTitle(notice.getTitle());
+        banner.setSubtitle(notice.getSummary());
+        banner.setTargetType("notice");
+        banner.setTargetId(notice.getId());
+        banner.setSortOrder(0);
+        banner.setCreatedBy(operatorId);
+        banner.setUpdatedBy(operatorId);
+        banner.setCreatedAt(LocalDateTime.now());
+        banner.setUpdatedAt(LocalDateTime.now());
+        homeBannerMapper.insert(banner);
+    }
+
+    private void removeBannerForNotice(Long noticeId) {
+        homeBannerMapper.delete(
+                new LambdaQueryWrapper<HomeBanner>()
+                        .eq(HomeBanner::getTargetType, "notice")
+                        .eq(HomeBanner::getTargetId, noticeId)
+        );
     }
 
     private LambdaQueryWrapper<Notice> buildQueryWrapper(NoticeQueryDTO queryDTO) {
