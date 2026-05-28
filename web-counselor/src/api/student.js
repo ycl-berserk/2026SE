@@ -9,6 +9,10 @@ export function importStudent(data) {
   return http.post('/api/admin/students', data)
 }
 
+export function deleteStudent(studentNo) {
+  return http.delete(`/api/admin/students/${encodeURIComponent(studentNo)}`)
+}
+
 export function importStudentsCsv(file) {
   const formData = new FormData()
   formData.append('file', file)

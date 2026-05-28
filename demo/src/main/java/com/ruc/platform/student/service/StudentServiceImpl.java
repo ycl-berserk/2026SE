@@ -1,5 +1,6 @@
 package com.ruc.platform.student.service;
 
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.ruc.platform.auth.entity.Role;
 import com.ruc.platform.common.api.PageResult;
 import com.ruc.platform.auth.entity.User;
@@ -249,6 +250,10 @@ public class StudentServiceImpl implements StudentService {
         if (!isDigits(studentNo)) {
             throw new BizException(ResultCode.PARAM_ERROR, "学号只能填写数字");
         }
+        String phone = clean(importDTO.getPhone());
+        if (!phone.isEmpty() && !isDigits(phone)) {
+            throw new BizException(ResultCode.PARAM_ERROR, "手机号只能填写数字");
+        }
 
         if (userMapper.selectByStudentNo(studentNo) != null) {
             throw new BizException(ResultCode.BIZ_ERROR, "该学号已存在");
@@ -262,7 +267,7 @@ public class StudentServiceImpl implements StudentService {
         user.setRealName(realName);
         user.setPasswordHash(passwordEncoder.encode(defaultPassword(importDTO.getPassword(), studentNo)));
         user.setAccountType(authType);
-        user.setPhone(clean(importDTO.getPhone()));
+        user.setPhone(phone);
         user.setEmail(clean(importDTO.getEmail()));
         user.setStatus(1);
         user.setCreatedAt(LocalDateTime.now());
@@ -307,6 +312,41 @@ public class StudentServiceImpl implements StudentService {
         vo.setDormitory(profile.getDormitory());
         vo.setUpdatedAt(profile.getUpdatedAt());
         return vo;
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void deleteStudent(String identifier) {
+        String cleanedIdentifier = clean(identifier);
+        if (cleanedIdentifier.isEmpty()) {
+            throw new BizException(ResultCode.PARAM_ERROR, "学生标识不能为空");
+        }
+        StudentProfile profile = resolveStudentProfile(cleanedIdentifier);
+        if (profile == null) {
+            throw new BizException(ResultCode.NOT_FOUND, "学生不存在");
+        }
+
+        String authType = normalizeAuthType(profile.getAuthType());
+        User user = userMapper.selectById(profile.getUserId());
+        if (user == null) {
+            studentProfileMapper.deleteById(profile.getId());
+            return;
+        }
+        if (!ROLE_STUDENT.equals(authType) && !ROLE_CADRE.equals(authType)) {
+            throw new BizException(ResultCode.PARAM_ERROR, "仅支持删除学生或学生骨干账号");
+        }
+        if (ROLE_COUNSELOR.equalsIgnoreCase(user.getAccountType()) || ROLE_ADMIN.equalsIgnoreCase(user.getAccountType())) {
+            throw new BizException(ResultCode.FORBIDDEN, "不能在学生管理中删除管理端账号");
+        }
+
+        studentProfileMapper.deleteById(profile.getId());
+        userRoleMapper.delete(new LambdaQueryWrapper<UserRole>().eq(UserRole::getUserId, user.getId()));
+        user.setStudentNo("deleted-" + user.getId());
+        user.setAccountType("deleted");
+        user.setStatus(0);
+        user.setUpdatedAt(LocalDateTime.now());
+        userMapper.updateById(user);
+        log.info("删除学生账号成功，profileId: {}, userId: {}, studentNo: {}", profile.getId(), user.getId(), profile.getStudentNo());
     }
 
     @Override
@@ -619,6 +659,18 @@ public class StudentServiceImpl implements StudentService {
 
     private boolean isDigits(String value) {
         return value != null && value.matches("\\d+");
+    }
+
+    private StudentProfile resolveStudentProfile(String identifier) {
+        StudentProfile profile = null;
+        if (isDigits(identifier)) {
+            try {
+                profile = studentProfileMapper.selectById(Long.parseLong(identifier));
+            } catch (NumberFormatException ignored) {
+                profile = null;
+            }
+        }
+        return profile != null ? profile : studentProfileMapper.selectByStudentNo(identifier);
     }
 
     private long normalizePageNum(Long pageNum) {

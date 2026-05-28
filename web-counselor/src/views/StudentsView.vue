@@ -1,7 +1,7 @@
 <script setup>
 import { computed, onMounted, reactive, ref } from 'vue'
-import { ElMessage } from 'element-plus'
-import { downloadStudentImportTemplate, fetchStudents, importStudent, importStudentsCsv } from '../api/student'
+import { ElMessage, ElMessageBox } from 'element-plus'
+import { deleteStudent, downloadStudentImportTemplate, fetchStudents, importStudent, importStudentsCsv } from '../api/student'
 
 const loading = ref(false)
 const rows = ref([])
@@ -11,6 +11,7 @@ const drawerVisible = ref(false)
 const importDialogVisible = ref(false)
 const importSubmitting = ref(false)
 const csvUploading = ref(false)
+const phoneError = ref('')
 
 const query = reactive({
   keyword: '',
@@ -114,6 +115,7 @@ function openDetail(row) {
 }
 
 function openImportDialog() {
+  phoneError.value = ''
   Object.assign(importForm, {
     studentNo: '',
     realName: '',
@@ -142,6 +144,9 @@ async function submitImport() {
   }
   if (!/^\d{4}[本硕博]$/.test(importForm.grade)) {
     ElMessage.warning('年级格式如 2023本 / 2022硕 / 2021博')
+    return
+  }
+  if (!validatePhoneBeforeSubmit()) {
     return
   }
   importSubmitting.value = true
@@ -188,6 +193,53 @@ function beforeCsvUpload(file) {
 
 function normalizeStudentNo(value) {
   importForm.studentNo = String(value || '').replace(/\D/g, '')
+}
+
+function clearPhoneError() {
+  phoneError.value = ''
+}
+
+function validatePhoneOnBlur() {
+  if (importForm.phone && !/^\d+$/.test(importForm.phone)) {
+    importForm.phone = ''
+    phoneError.value = '手机号输入不合法，请只输入数字'
+    return
+  }
+  phoneError.value = ''
+}
+
+function validatePhoneBeforeSubmit() {
+  if (importForm.phone && !/^\d+$/.test(importForm.phone)) {
+    importForm.phone = ''
+    phoneError.value = '手机号输入不合法，请只输入数字'
+    return false
+  }
+  if (phoneError.value) {
+    return false
+  }
+  return true
+}
+
+async function handleDelete(row) {
+  try {
+    await ElMessageBox.confirm(`确认删除学生「${row.realName || row.studentNo}」吗？删除后该学生账号将无法登录。`, '删除学生', {
+      confirmButtonText: '删除',
+      cancelButtonText: '取消',
+      type: 'warning',
+      confirmButtonClass: 'el-button--danger',
+    })
+    await deleteStudent(row.studentNo)
+    ElMessage.success('学生已删除')
+    if (rows.value.length === 1 && query.pageNum > 1) {
+      query.pageNum -= 1
+    }
+    await loadData()
+  } catch (error) {
+    if (error === 'cancel' || error === 'close') {
+      return
+    }
+    ElMessage.error(error.message || '删除失败')
+  }
 }
 
 async function uploadCsv(options) {
@@ -293,9 +345,10 @@ onMounted(loadData)
             </el-tag>
           </template>
         </el-table-column>
-        <el-table-column label="操作" width="90" fixed="right">
+        <el-table-column label="操作" width="130" fixed="right">
           <template #default="{ row }">
             <el-button type="primary" link @click="openDetail(row)">查看</el-button>
+            <el-button type="danger" link @click="handleDelete(row)">删除</el-button>
           </template>
         </el-table-column>
       </el-table>
@@ -378,8 +431,14 @@ onMounted(loadData)
         <el-form-item label="政治面貌">
           <el-input v-model="importForm.politicalStatus" placeholder="如 共青团员" />
         </el-form-item>
-        <el-form-item label="手机号">
-          <el-input v-model="importForm.phone" placeholder="手机号" />
+        <el-form-item label="手机号" :error="phoneError">
+          <el-input
+            v-model="importForm.phone"
+            placeholder="手机号"
+            inputmode="numeric"
+            @input="clearPhoneError"
+            @blur="validatePhoneOnBlur"
+          />
         </el-form-item>
         <el-form-item label="邮箱">
           <el-input v-model="importForm.email" placeholder="邮箱" />
