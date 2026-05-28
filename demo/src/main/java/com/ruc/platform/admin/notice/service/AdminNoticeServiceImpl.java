@@ -273,6 +273,7 @@ public class AdminNoticeServiceImpl implements AdminNoticeService {
         vo.setTag(notice.getTag());
         vo.setStatus(notice.getStatus());
         vo.setPriority(notice.getPriority());
+        vo.setIsBanner(Boolean.TRUE.equals(notice.getIsBanner()));
         vo.setAttachmentFileId(notice.getAttachmentFileId());
         vo.setFeedbackCounselorId(notice.getFeedbackCounselorId());
         vo.setFeedbackCadreIds(parseLongIds(notice.getFeedbackCadreIds()));
@@ -294,6 +295,7 @@ public class AdminNoticeServiceImpl implements AdminNoticeService {
         vo.setTag(notice.getTag());
         vo.setStatus(notice.getStatus());
         vo.setPriority(notice.getPriority());
+        vo.setIsBanner(Boolean.TRUE.equals(notice.getIsBanner()));
         vo.setAttachmentFileId(notice.getAttachmentFileId());
         vo.setFeedbackCounselorId(notice.getFeedbackCounselorId());
         vo.setFeedbackCadreIds(parseLongIds(notice.getFeedbackCadreIds()));
