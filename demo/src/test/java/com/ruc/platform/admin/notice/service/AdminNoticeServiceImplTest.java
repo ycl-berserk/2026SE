@@ -2,8 +2,12 @@ package com.ruc.platform.admin.notice.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ruc.platform.admin.notice.dto.NoticeCreateDTO;
+import com.ruc.platform.admin.notice.dto.NoticeQueryDTO;
 import com.ruc.platform.admin.notice.dto.NoticeTargetDTO;
+import com.ruc.platform.admin.notice.dto.NoticeUpdateDTO;
+import com.ruc.platform.admin.notice.vo.NoticeListItemVO;
 import com.ruc.platform.admin.notice.vo.NoticeDetailVO;
+import com.ruc.platform.common.api.PageResult;
 import com.ruc.platform.notice.entity.Notice;
 import com.ruc.platform.notice.mapper.NoticeMapper;
 import com.ruc.platform.notice.mapper.UserMessageMapper;
@@ -18,6 +22,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.nullable;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -86,6 +91,73 @@ class AdminNoticeServiceImplTest {
         verify(noticeMapper).insert(noticeCaptor.capture());
         assertThat(noticeCaptor.getValue().getAttachmentFileId()).isEqualTo(99001L);
         assertThat(detail.getAttachmentFileId()).isEqualTo(99001L);
+    }
+
+    @Test
+    void createNoticePersistsAndReturnsBannerFlag() {
+        NoticeMapper noticeMapper = mock(NoticeMapper.class);
+        UserMessageMapper userMessageMapper = mock(UserMessageMapper.class);
+        when(userMessageMapper.countByNoticeId(any())).thenReturn(0L);
+        AdminNoticeServiceImpl service = new AdminNoticeServiceImpl(noticeMapper, userMessageMapper, null, new ObjectMapper(), null);
+        NoticeCreateDTO dto = new NoticeCreateDTO();
+        dto.setTitle("首页轮播通知");
+        dto.setContent("展示在首页轮播。");
+        dto.setIsBanner(true);
+
+        NoticeDetailVO detail = service.createNotice(100L, dto);
+
+        org.mockito.ArgumentCaptor<Notice> noticeCaptor = org.mockito.ArgumentCaptor.forClass(Notice.class);
+        verify(noticeMapper).insert(noticeCaptor.capture());
+        assertThat(noticeCaptor.getValue().getIsBanner()).isTrue();
+        assertThat(detail.getIsBanner()).isTrue();
+    }
+
+    @Test
+    void updateNoticeReturnsBannerFlagForEditEcho() {
+        NoticeMapper noticeMapper = mock(NoticeMapper.class);
+        UserMessageMapper userMessageMapper = mock(UserMessageMapper.class);
+        Notice notice = new Notice();
+        notice.setId(91002L);
+        notice.setTitle("待编辑通知");
+        notice.setContent("旧内容");
+        notice.setStatus(0);
+        when(noticeMapper.selectById(91002L)).thenReturn(notice);
+        when(userMessageMapper.countByNoticeId(91002L)).thenReturn(0L);
+        AdminNoticeServiceImpl service = new AdminNoticeServiceImpl(noticeMapper, userMessageMapper, null, new ObjectMapper(), null);
+        NoticeUpdateDTO dto = new NoticeUpdateDTO();
+        dto.setTitle("待编辑通知");
+        dto.setContent("新内容");
+        dto.setIsBanner(true);
+
+        NoticeDetailVO detail = service.updateNotice(91002L, dto);
+
+        org.mockito.ArgumentCaptor<Notice> noticeCaptor = org.mockito.ArgumentCaptor.forClass(Notice.class);
+        verify(noticeMapper).updateById(noticeCaptor.capture());
+        verify(noticeMapper, times(2)).selectById(91002L);
+        assertThat(noticeCaptor.getValue().getIsBanner()).isTrue();
+        assertThat(detail.getIsBanner()).isTrue();
+    }
+
+    @Test
+    void listNoticesReturnsBannerFlag() {
+        NoticeMapper noticeMapper = mock(NoticeMapper.class);
+        UserMessageMapper userMessageMapper = mock(UserMessageMapper.class);
+        Notice notice = new Notice();
+        notice.setId(91003L);
+        notice.setTitle("列表轮播通知");
+        notice.setContent("内容");
+        notice.setStatus(1);
+        notice.setPriority(0);
+        notice.setIsBanner(true);
+        when(noticeMapper.selectCount(any())).thenReturn(1L);
+        when(noticeMapper.selectList(any())).thenReturn(List.of(notice));
+        when(userMessageMapper.countByNoticeId(91003L)).thenReturn(0L);
+        AdminNoticeServiceImpl service = new AdminNoticeServiceImpl(noticeMapper, userMessageMapper, null, new ObjectMapper(), null);
+
+        PageResult<NoticeListItemVO> result = service.listNotices(new NoticeQueryDTO());
+
+        assertThat(result.getRecords()).hasSize(1);
+        assertThat(result.getRecords().get(0).getIsBanner()).isTrue();
     }
 
     @Test
