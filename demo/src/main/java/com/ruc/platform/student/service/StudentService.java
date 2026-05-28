@@ -59,6 +59,12 @@ public interface StudentService {
     StudentListItemVO importStudent(StudentImportDTO importDTO);
 
     /**
+     * 管理端删除学生账号与档案
+     * @param identifier 学生档案 ID 或学号
+     */
+    void deleteStudent(String identifier);
+
+    /**
      * 管理端通过 CSV 批量导入学生账号
      * @param file CSV 文件
      * @return 导入结果
