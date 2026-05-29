@@ -6,12 +6,15 @@ import { fetchCurrentUser } from '../api/auth'
 const route = useRoute()
 const router = useRouter()
 const userRoles = ref([])
+const userName = ref('用户')
 
 function loadUserFromStorage() {
   try {
     const saved = localStorage.getItem('currentUser')
     if (saved) {
-      userRoles.value = JSON.parse(saved).roles || []
+      const user = JSON.parse(saved)
+      userRoles.value = user.roles || []
+      userName.value = user.realName || '用户'
       return true
     }
   } catch (_) {}
@@ -38,6 +41,7 @@ onMounted(async () => {
 
 const allMenus = [
   { path: '/dashboard', label: '工作台', icon: 'Odometer' },
+  { path: '/profile', label: '个人中心', icon: 'UserFilled' },
   { path: '/review/pending', label: '待审批', icon: 'Clock' },
   { path: '/review/processed', label: '已处理', icon: 'Select' },
   { path: '/party', label: '党团管理', icon: 'Flag' },
@@ -59,10 +63,9 @@ const menus = computed(() => {
 })
 
 const isAdmin = computed(() => userRoles.value.includes('admin'))
-const userName = ref(localStorage.getItem('currentUser') ? (JSON.parse(localStorage.getItem('currentUser')).realName || '用户') : '用户')
 
 const currentTitle = computed(() => {
-  const m = allMenus.find(m => route.path.startsWith(m.path))
+  const m = allMenus.find(m => route.path === m.path || route.path.startsWith(`${m.path}/`))
   return m ? m.label : '审批管理'
 })
 
@@ -76,6 +79,16 @@ function doLogout() {
   localStorage.removeItem('accessToken')
   localStorage.removeItem('currentUser')
   router.push('/login')
+}
+
+function handleUserCommand(cmd) {
+  if (cmd === 'profile') {
+    router.push('/profile')
+    return
+  }
+  if (cmd === 'logout') {
+    doLogout()
+  }
 }
 </script>
 
@@ -122,7 +135,7 @@ function doLogout() {
         <div class="header-right">
           <el-tag v-if="isAdmin" type="danger" effect="dark" size="small">管理员</el-tag>
           <el-tag v-else type="warning" effect="dark" size="small">辅导员</el-tag>
-          <el-dropdown @command="(cmd) => cmd === 'logout' && doLogout()">
+          <el-dropdown @command="handleUserCommand">
             <span class="user-info">
               <el-avatar size="small" icon="UserFilled" />
               <span class="username">{{ userName }}</span>
