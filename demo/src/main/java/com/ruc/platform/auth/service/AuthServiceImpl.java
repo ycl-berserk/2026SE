@@ -1,6 +1,7 @@
 package com.ruc.platform.auth.service;
 
 import cn.dev33.satoken.stp.StpUtil;
+import com.ruc.platform.admin.audit.service.AuditLogService;
 import com.ruc.platform.auth.dto.AccountLoginDTO;
 import com.ruc.platform.auth.dto.AccountRegisterDTO;
 import com.ruc.platform.auth.dto.WxLoginDTO;
@@ -17,8 +18,10 @@ import com.ruc.platform.common.exception.BizException;
 import com.ruc.platform.common.util.GradeUtils;
 import com.ruc.platform.student.entity.StudentProfile;
 import com.ruc.platform.student.mapper.StudentProfileMapper;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -40,6 +43,8 @@ public class AuthServiceImpl implements AuthService {
     private final UserRoleMapper userRoleMapper;
     private final StudentProfileMapper studentProfileMapper;
     private final PasswordEncoder passwordEncoder;
+    private final AuditLogService auditLogService;
+    private final ObjectProvider<HttpServletRequest> requestProvider;
 
     @Override
     @Transactional(rollbackFor = Exception.class)
@@ -174,7 +179,9 @@ public class AuthServiceImpl implements AuthService {
         if (CLIENT_WEB.equals(clientType) && !(roles.contains(ROLE_COUNSELOR) || roles.contains(ROLE_ADMIN))) {
             throw new BizException(ResultCode.FORBIDDEN, "学生账号请在小程序端登录");
         }
-        return buildLoginVO(user);
+        LoginVO loginVO = buildLoginVO(user);
+        recordLogin(user);
+        return loginVO;
     }
 
     @Override
@@ -194,7 +201,39 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public void logout() {
+        Long userId = null;
+        try {
+            userId = StpUtil.getLoginIdAsLong();
+        } catch (Exception ignored) {
+        }
+        auditLogService.record(
+                userId,
+                "user",
+                "logout",
+                "账号退出登录",
+                currentRequest(),
+                null,
+                true,
+                null
+        );
         StpUtil.logout();
+    }
+
+    private HttpServletRequest currentRequest() {
+        return requestProvider.getIfAvailable();
+    }
+
+    private void recordLogin(User user) {
+        auditLogService.record(
+                user.getId(),
+                "user",
+                "login",
+                "账号登录：" + user.getRealName(),
+                currentRequest(),
+                null,
+                true,
+                null
+        );
     }
 
     private LoginVO buildLoginVO(User user) {
