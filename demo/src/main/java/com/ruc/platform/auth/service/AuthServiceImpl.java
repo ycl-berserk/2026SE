@@ -251,6 +251,11 @@ public class AuthServiceImpl implements AuthService {
         userVO.setRealName(user.getRealName());
         userVO.setStudentNo(user.getStudentNo());
         userVO.setAccountType(user.getAccountType());
+        userVO.setPhone(user.getPhone());
+        userVO.setEmail(user.getEmail());
+        userVO.setStatus(user.getStatus());
+        userVO.setCreatedAt(user.getCreatedAt());
+        userVO.setUpdatedAt(user.getUpdatedAt());
         List<String> roles = userMapper.selectRoleCodesByUserId(user.getId());
         userVO.setRoles(roles);
 

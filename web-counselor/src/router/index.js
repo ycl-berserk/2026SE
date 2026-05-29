@@ -15,6 +15,7 @@ import KnowledgeView from '../views/KnowledgeView.vue'
 import BannerView from '../views/BannerView.vue'
 import CertificateView from '../views/CertificateView.vue'
 import HonorView from '../views/HonorView.vue'
+import ProfileView from '../views/ProfileView.vue'
 import { fetchCurrentUser } from '../api/auth'
 
 const WEB_ROLES = ['counselor', 'admin']
@@ -30,6 +31,7 @@ const router = createRouter({
       children: [
         { path: '', redirect: '/dashboard' },
         { path: 'dashboard', name: 'dashboard', component: DashboardView, meta: { roles: WEB_ROLES } },
+        { path: 'profile', name: 'profile', component: ProfileView, meta: { title: '个人中心', roles: WEB_ROLES } },
 
         // 审批管理
         { path: 'review/pending', name: 'pending', component: PendingListView, meta: { roles: WEB_ROLES } },
