@@ -12,6 +12,7 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 public class SaTokenConfig implements WebMvcConfigurer {
 
     private final ApiRoleInterceptor apiRoleInterceptor;
+    private final AuditLogInterceptor auditLogInterceptor;
 
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
@@ -31,5 +32,7 @@ public class SaTokenConfig implements WebMvcConfigurer {
                         "/api/auth/register",
                         "/api/auth/wx-login"
                 );
+        registry.addInterceptor(auditLogInterceptor)
+                .addPathPatterns("/api/**");
     }
 }
