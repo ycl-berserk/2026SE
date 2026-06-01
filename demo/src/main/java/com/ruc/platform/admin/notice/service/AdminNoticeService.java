@@ -28,5 +28,7 @@ public interface AdminNoticeService {
 
     void offlineNotice(Long id);
 
+    void restoreNotice(Long id);
+
     void deleteNotice(Long id);
 }

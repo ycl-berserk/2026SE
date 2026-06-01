@@ -190,6 +190,26 @@ public class AdminNoticeServiceImpl implements AdminNoticeService {
 
     @Override
     @Transactional
+    public void restoreNotice(Long id) {
+        Notice notice = requireNotice(id);
+        if (!Integer.valueOf(STATUS_OFFLINE).equals(notice.getStatus())) {
+            throw new BizException(ResultCode.BIZ_ERROR, "只有已下架通知可以重新上架");
+        }
+        Long deliveredCount = userMessageMapper.countByNoticeId(id);
+        if (deliveredCount == null || deliveredCount <= 0) {
+            throw new BizException(ResultCode.BIZ_ERROR, "通知没有投递记录，请使用发布操作");
+        }
+        LocalDateTime now = LocalDateTime.now();
+        notice.setStatus(STATUS_PUBLISHED);
+        notice.setUpdatedAt(now);
+        noticeMapper.updateById(notice);
+        if (localSearchService != null) {
+            localSearchService.indexNotice(notice);
+        }
+    }
+
+    @Override
+    @Transactional
     public void deleteNotice(Long id) {
         Notice notice = requireNotice(id);
         if (Integer.valueOf(STATUS_PUBLISHED).equals(notice.getStatus())) {

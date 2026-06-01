@@ -32,6 +32,10 @@ export function offlineNotice(id) {
   return http.post(`/api/admin/notices/${id}/offline`)
 }
 
+export function restoreNotice(id) {
+  return http.post(`/api/admin/notices/${id}/restore`)
+}
+
 export function deleteNotice(id) {
   return http.delete(`/api/admin/notices/${id}`)
 }

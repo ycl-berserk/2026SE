@@ -139,6 +139,53 @@ class AdminNoticeServiceImplTest {
     }
 
     @Test
+    void updateNoticeAllowsRemovingAttachmentFileId() {
+        NoticeMapper noticeMapper = mock(NoticeMapper.class);
+        UserMessageMapper userMessageMapper = mock(UserMessageMapper.class);
+        Notice notice = new Notice();
+        notice.setId(91004L);
+        notice.setTitle("待移除附件通知");
+        notice.setContent("旧内容");
+        notice.setStatus(0);
+        notice.setAttachmentFileId(99001L);
+        when(noticeMapper.selectById(91004L)).thenReturn(notice);
+        when(userMessageMapper.countByNoticeId(91004L)).thenReturn(0L);
+        AdminNoticeServiceImpl service = new AdminNoticeServiceImpl(noticeMapper, userMessageMapper, null, new ObjectMapper(), null);
+        NoticeUpdateDTO dto = new NoticeUpdateDTO();
+        dto.setTitle("待移除附件通知");
+        dto.setContent("新内容");
+        dto.setAttachmentFileId(null);
+
+        NoticeDetailVO detail = service.updateNotice(91004L, dto);
+
+        org.mockito.ArgumentCaptor<Notice> noticeCaptor = org.mockito.ArgumentCaptor.forClass(Notice.class);
+        verify(noticeMapper).updateById(noticeCaptor.capture());
+        assertThat(noticeCaptor.getValue().getAttachmentFileId()).isNull();
+        assertThat(detail.getAttachmentFileId()).isNull();
+    }
+
+    @Test
+    void restoreNoticePutsOfflineNoticeBackOnlineWithoutRedelivery() {
+        NoticeMapper noticeMapper = mock(NoticeMapper.class);
+        UserMessageMapper userMessageMapper = mock(UserMessageMapper.class);
+        Notice notice = new Notice();
+        notice.setId(91005L);
+        notice.setTitle("误下架通知");
+        notice.setContent("内容");
+        notice.setStatus(2);
+        when(noticeMapper.selectById(91005L)).thenReturn(notice);
+        when(userMessageMapper.countByNoticeId(91005L)).thenReturn(3L);
+        AdminNoticeServiceImpl service = new AdminNoticeServiceImpl(noticeMapper, userMessageMapper, null, new ObjectMapper(), null);
+
+        service.restoreNotice(91005L);
+
+        org.mockito.ArgumentCaptor<Notice> noticeCaptor = org.mockito.ArgumentCaptor.forClass(Notice.class);
+        verify(noticeMapper).updateById(noticeCaptor.capture());
+        verify(userMessageMapper, times(0)).insert(any());
+        assertThat(noticeCaptor.getValue().getStatus()).isEqualTo(1);
+    }
+
+    @Test
     void listNoticesReturnsBannerFlag() {
         NoticeMapper noticeMapper = mock(NoticeMapper.class);
         UserMessageMapper userMessageMapper = mock(UserMessageMapper.class);

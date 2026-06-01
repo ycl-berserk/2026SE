@@ -68,6 +68,12 @@ public class AdminNoticeController {
         return Result.ok();
     }
 
+    @PostMapping("/{id}/restore")
+    public Result<Void> restoreNotice(@PathVariable Long id) {
+        adminNoticeService.restoreNotice(id);
+        return Result.ok();
+    }
+
     @DeleteMapping("/{id}")
     public Result<Void> deleteNotice(@PathVariable Long id) {
         adminNoticeService.deleteNotice(id);

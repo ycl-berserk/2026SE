@@ -11,6 +11,7 @@ import {
   fetchNotices,
   offlineNotice,
   publishNotice,
+  restoreNotice,
   updateNotice,
   uploadNoticeAttachment,
 } from '../api/notice'
@@ -118,6 +119,10 @@ function canPublish(row) {
 
 function canDelete(row) {
   return statusValue(row) !== 1 && deliveredCountValue(row) === 0
+}
+
+function canRestore(row) {
+  return statusValue(row) === 2 && deliveredCountValue(row) > 0
 }
 
 function formatTime(value) {
@@ -444,10 +449,39 @@ async function handleOffline(row) {
     await ElMessageBox.confirm('确认下架该通知吗？学生端已收到的消息第一阶段仍会保留。', '下架通知', { type: 'warning' })
     await offlineNotice(row.id)
     ElMessage.success('通知已下架')
+    if (drawerVisible.value && currentDetail.value?.id === row.id) {
+      const [detail, stats] = await Promise.all([
+        fetchNoticeDetail(row.id),
+        fetchNoticeStats(row.id),
+      ])
+      currentDetail.value = detail
+      currentStats.value = stats
+    }
     loadData()
   } catch (error) {
     if (error !== 'cancel') {
       ElMessage.error(error.message || '下架失败')
+    }
+  }
+}
+
+async function handleRestore(row) {
+  try {
+    await ElMessageBox.confirm('确认重新上架该通知吗？不会重复投递消息。', '重新上架通知', { type: 'warning' })
+    await restoreNotice(row.id)
+    ElMessage.success('通知已重新上架')
+    if (drawerVisible.value && currentDetail.value?.id === row.id) {
+      const [detail, stats] = await Promise.all([
+        fetchNoticeDetail(row.id),
+        fetchNoticeStats(row.id),
+      ])
+      currentDetail.value = detail
+      currentStats.value = stats
+    }
+    loadData()
+  } catch (error) {
+    if (error !== 'cancel') {
+      ElMessage.error(error.message || '重新上架失败')
     }
   }
 }
@@ -556,6 +590,7 @@ onMounted(() => {
             <el-button v-if="canPublish(row)" type="info" link @click="handleEstimate(row)">预估</el-button>
             <el-button v-if="canPublish(row)" type="success" link @click="handlePublish(row)">发布</el-button>
             <el-button v-if="statusValue(row) === 1" type="warning" link @click="handleOffline(row)">下架</el-button>
+            <el-button v-if="canRestore(row)" type="success" link @click="handleRestore(row)">重新上架</el-button>
             <el-button v-if="canDelete(row)" type="danger" link @click="handleDelete(row)">删除</el-button>
           </template>
         </el-table-column>
@@ -725,6 +760,7 @@ onMounted(() => {
           <el-button v-if="canPublish(currentDetail)" type="info" @click="handleEstimate(currentDetail)">预估人数</el-button>
           <el-button v-if="canPublish(currentDetail)" type="success" @click="handlePublish(currentDetail)">发布通知</el-button>
           <el-button v-if="statusValue(currentDetail) === 1" type="warning" @click="handleOffline(currentDetail)">下架通知</el-button>
+          <el-button v-if="canRestore(currentDetail)" type="success" @click="handleRestore(currentDetail)">重新上架</el-button>
         </div>
         <el-descriptions :column="1" border>
           <el-descriptions-item label="标题">{{ currentDetail.title }}</el-descriptions-item>

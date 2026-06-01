@@ -2,6 +2,8 @@ package com.ruc.platform.notice.entity;
 
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
+import com.baomidou.mybatisplus.annotation.TableField;
+import com.baomidou.mybatisplus.annotation.FieldStrategy;
 import lombok.Data;
 
 import java.time.LocalDateTime;
@@ -32,6 +34,7 @@ public class Notice {
 
     private Integer priority;
 
+    @TableField(updateStrategy = FieldStrategy.ALWAYS)
     private Long attachmentFileId;
 
     private Boolean isBanner;
