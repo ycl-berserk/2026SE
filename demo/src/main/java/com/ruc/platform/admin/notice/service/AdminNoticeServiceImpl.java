@@ -13,6 +13,8 @@ import com.ruc.platform.admin.notice.vo.NoticeTargetEstimateVO;
 import com.ruc.platform.common.api.PageResult;
 import com.ruc.platform.common.api.ResultCode;
 import com.ruc.platform.common.exception.BizException;
+import com.ruc.platform.home.entity.HomeBanner;
+import com.ruc.platform.home.mapper.HomeBannerMapper;
 import com.ruc.platform.notice.entity.Notice;
 import com.ruc.platform.notice.entity.UserMessage;
 import com.ruc.platform.notice.mapper.NoticeMapper;
@@ -50,6 +52,7 @@ public class AdminNoticeServiceImpl implements AdminNoticeService {
     private final StudentProfileMapper studentProfileMapper;
     private final ObjectMapper objectMapper;
     private final KnowledgeLocalSearchService localSearchService;
+    private final HomeBannerMapper homeBannerMapper;
 
     @Override
     public PageResult<NoticeListItemVO> listNotices(NoticeQueryDTO queryDTO) {
@@ -92,6 +95,7 @@ public class AdminNoticeServiceImpl implements AdminNoticeService {
         if (Integer.valueOf(STATUS_PUBLISHED).equals(notice.getStatus()) && localSearchService != null) {
             localSearchService.indexNotice(notice);
         }
+        syncNoticeBanner(notice, notice.getFeedbackCounselorId());
         return toDetailVO(noticeMapper.selectById(id));
     }
 
@@ -124,6 +128,7 @@ public class AdminNoticeServiceImpl implements AdminNoticeService {
         notice.setFeedbackCounselorId(publisherId);
         notice.setUpdatedAt(now);
         noticeMapper.updateById(notice);
+        syncNoticeBanner(notice, publisherId);
 
         for (Long userId : userIds) {
             UserMessage message = new UserMessage();
@@ -183,6 +188,7 @@ public class AdminNoticeServiceImpl implements AdminNoticeService {
         notice.setStatus(STATUS_OFFLINE);
         notice.setUpdatedAt(LocalDateTime.now());
         noticeMapper.updateById(notice);
+        removeNoticeBanner(id);
         if (localSearchService != null) {
             localSearchService.deleteSource("notice", id);
         }
@@ -203,6 +209,7 @@ public class AdminNoticeServiceImpl implements AdminNoticeService {
         notice.setStatus(STATUS_PUBLISHED);
         notice.setUpdatedAt(now);
         noticeMapper.updateById(notice);
+        syncNoticeBanner(notice, notice.getFeedbackCounselorId());
         if (localSearchService != null) {
             localSearchService.indexNotice(notice);
         }
@@ -219,6 +226,7 @@ public class AdminNoticeServiceImpl implements AdminNoticeService {
         if (deliveredCount != null && deliveredCount > 0) {
             throw new BizException(ResultCode.BIZ_ERROR, "通知已有投递记录，暂不支持删除");
         }
+        removeNoticeBanner(id);
         noticeMapper.deleteById(id);
     }
 
@@ -466,5 +474,54 @@ public class AdminNoticeServiceImpl implements AdminNoticeService {
 
     private Long safeCount(Long count) {
         return count == null ? 0L : count;
+    }
+
+    private void syncNoticeBanner(Notice notice, Long operatorId) {
+        if (homeBannerMapper == null || notice == null || notice.getId() == null) {
+            return;
+        }
+        if (!Boolean.TRUE.equals(notice.getIsBanner()) || !Integer.valueOf(STATUS_PUBLISHED).equals(notice.getStatus())) {
+            removeNoticeBanner(notice.getId());
+            return;
+        }
+
+        HomeBanner banner = homeBannerMapper.selectOne(
+                new LambdaQueryWrapper<HomeBanner>()
+                        .eq(HomeBanner::getSourceNoticeId, notice.getId())
+                        .last("LIMIT 1")
+        );
+        LocalDateTime now = LocalDateTime.now();
+        if (banner == null) {
+            banner = new HomeBanner();
+            banner.setSourceType("notice");
+            banner.setSourceNoticeId(notice.getId());
+            banner.setCreatedBy(notice.getCreatedBy());
+            banner.setCreatedAt(now);
+            banner.setSortOrder(0);
+        }
+        banner.setTitle(notice.getTitle());
+        banner.setSubtitle(notice.getSummary());
+        banner.setTargetType("notice");
+        banner.setTargetId(notice.getId());
+        banner.setTargetPath(null);
+        banner.setStatus(1);
+        banner.setUpdatedBy(operatorId);
+        banner.setUpdatedAt(now);
+
+        if (banner.getId() == null) {
+            homeBannerMapper.insert(banner);
+        } else {
+            homeBannerMapper.updateById(banner);
+        }
+    }
+
+    private void removeNoticeBanner(Long noticeId) {
+        if (homeBannerMapper == null || noticeId == null) {
+            return;
+        }
+        homeBannerMapper.delete(
+                new LambdaQueryWrapper<HomeBanner>()
+                        .eq(HomeBanner::getSourceNoticeId, noticeId)
+        );
     }
 }
