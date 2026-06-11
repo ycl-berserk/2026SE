@@ -15,7 +15,7 @@ const form = ref({
   targetType: 'none',
   targetId: null,
   targetPath: '',
-  sortOrder: 0,
+  sortOrder: 1,
 })
 
 const targetTypeOptions = [
@@ -38,7 +38,7 @@ async function fetchBanners() {
 
 function resetForm() {
   editingId.value = null
-  form.value = { title: '', subtitle: '', targetType: 'none', targetId: null, targetPath: '', sortOrder: 0 }
+  form.value = { title: '', subtitle: '', targetType: 'none', targetId: null, targetPath: '', sortOrder: 1 }
 }
 
 function openCreate() {
@@ -54,7 +54,7 @@ function openEdit(row) {
     targetType: row.targetType || 'none',
     targetId: row.targetId || null,
     targetPath: row.targetPath || '',
-    sortOrder: row.sortOrder || 0,
+    sortOrder: row.sortOrder || 1,
   }
   dialogVisible.value = true
 }
@@ -140,7 +140,7 @@ onMounted(fetchBanners)
           <el-input-number v-model="form.targetId" :min="1" style="width:100%" placeholder="输入知识文章或通知的ID" />
         </el-form-item>
         <el-form-item label="排序">
-          <el-input-number v-model="form.sortOrder" :min="0" style="width:100%" />
+          <el-input-number v-model="form.sortOrder" :min="1" style="width:100%" />
         </el-form-item>
       </el-form>
       <template #footer>
