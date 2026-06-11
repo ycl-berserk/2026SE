@@ -65,6 +65,10 @@ export function updateKnowledgeCategory(id, data) {
   return http.put(`/api/admin/knowledge/categories/${id}`, data)
 }
 
+export function deleteKnowledgeCategory(id) {
+  return http.delete(`/api/admin/knowledge/categories/${id}`)
+}
+
 export function fetchKnowledgeStats() {
   return http.get('/api/admin/knowledge/stats')
 }

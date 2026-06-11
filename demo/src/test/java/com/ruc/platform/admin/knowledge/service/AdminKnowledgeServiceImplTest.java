@@ -1,11 +1,13 @@
 package com.ruc.platform.admin.knowledge.service;
 
 import com.ruc.platform.admin.knowledge.dto.KnowledgeArticleSaveDTO;
+import com.ruc.platform.admin.knowledge.dto.KnowledgeCategorySaveDTO;
 import com.ruc.platform.admin.knowledge.dto.KnowledgeTemplateSaveDTO;
 import com.ruc.platform.common.api.PageResult;
 import com.ruc.platform.knowledgeness.dto.KnowledgeArticleQueryDTO;
 import com.ruc.platform.knowledgeness.dto.KnowledgeTemplateQueryDTO;
 import com.ruc.platform.knowledgeness.entity.KnowledgeArticle;
+import com.ruc.platform.knowledgeness.entity.KnowledgeCategory;
 import com.ruc.platform.knowledgeness.entity.KnowledgeTemplate;
 import com.ruc.platform.knowledgeness.mapper.KnowledgeArticleMapper;
 import com.ruc.platform.knowledgeness.mapper.KnowledgeBehaviorEventMapper;
@@ -24,6 +26,7 @@ import java.util.List;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -202,6 +205,41 @@ class AdminKnowledgeServiceImplTest {
         verify(templateMapper).updateById(captor.capture());
         assertThat(captor.getValue().getStatus()).isEqualTo(1);
         assertThat(captor.getValue().getUpdatedBy()).isEqualTo(77L);
+    }
+
+    @Test
+    void createCategoryShouldShiftExistingSortOrdersBeforeInsert() {
+        KnowledgeCategoryMapper categoryMapper = mock(KnowledgeCategoryMapper.class);
+        AdminKnowledgeServiceImpl service = new AdminKnowledgeServiceImpl(mock(KnowledgeArticleMapper.class), mock(KnowledgeTemplateMapper.class), categoryMapper, mock(KnowledgeBehaviorEventMapper.class), mock(KnowledgeRecommendationLogMapper.class), new KnowledgeContentRenderer(), mock(KnowledgeIndexingService.class));
+        KnowledgeCategorySaveDTO dto = new KnowledgeCategorySaveDTO();
+        dto.setName("新分类");
+        dto.setCode("new-category");
+        dto.setSortOrder(3);
+
+        service.createCategory(dto);
+
+        var ordered = inOrder(categoryMapper);
+        ordered.verify(categoryMapper).update(any(), any());
+        ordered.verify(categoryMapper).insert(any());
+    }
+
+    @Test
+    void deleteCategoryShouldClearArticleReferencesAndCloseSortGap() {
+        KnowledgeArticleMapper articleMapper = mock(KnowledgeArticleMapper.class);
+        KnowledgeCategoryMapper categoryMapper = mock(KnowledgeCategoryMapper.class);
+        KnowledgeCategory category = new KnowledgeCategory();
+        category.setId(3L);
+        category.setSortOrder(3);
+        when(categoryMapper.selectById(3L)).thenReturn(category);
+        AdminKnowledgeServiceImpl service = new AdminKnowledgeServiceImpl(articleMapper, mock(KnowledgeTemplateMapper.class), categoryMapper, mock(KnowledgeBehaviorEventMapper.class), mock(KnowledgeRecommendationLogMapper.class), new KnowledgeContentRenderer(), mock(KnowledgeIndexingService.class));
+
+        service.deleteCategory(3L);
+
+        var ordered = inOrder(categoryMapper, articleMapper);
+        ordered.verify(categoryMapper).selectById(3L);
+        ordered.verify(articleMapper).update(any(), any());
+        ordered.verify(categoryMapper).deleteById(3L);
+        ordered.verify(categoryMapper).update(any(), any());
     }
 
     @Test

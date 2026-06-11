@@ -6,6 +6,7 @@ import {
   createKnowledgeCategory,
   createKnowledgeTemplate,
   deleteKnowledgeArticle,
+  deleteKnowledgeCategory,
   deleteKnowledgeTemplate,
   fetchKnowledgeArticles,
   fetchKnowledgeArticleDetail,
@@ -365,6 +366,15 @@ async function saveCategory() {
   loadCategories()
 }
 
+async function removeCategory(row) {
+  await ElMessageBox.confirm(`确认删除分类“${row.name}”？关联资料将变为未分类。`, '删除确认', { type: 'warning' })
+  await deleteKnowledgeCategory(row.id)
+  ElMessage.success('已删除')
+  loadCategories()
+  loadArticles()
+  loadStats()
+}
+
 function extractStatusText(status) {
   const labels = { success: '已索引', empty: '无可索引文本', failed: '解析失败', unsupported: '暂不支持', editor: '在线内容' }
   return labels[status] || '待索引'
@@ -486,9 +496,10 @@ onMounted(async () => {
             <el-table-column prop="code" label="编码" />
             <el-table-column prop="sortOrder" label="排序" width="90" />
             <el-table-column prop="status" label="状态" width="90" />
-            <el-table-column label="操作" width="100">
+            <el-table-column label="操作" width="160">
               <template #default="{ row }">
                 <el-button size="small" @click="openEditCategory(row)">编辑</el-button>
+                <el-button size="small" type="danger" @click="removeCategory(row)">删除</el-button>
               </template>
             </el-table-column>
           </el-table>

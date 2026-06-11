@@ -51,6 +51,8 @@ public interface AdminKnowledgeService {
 
     void updateCategory(Long id, KnowledgeCategorySaveDTO dto);
 
+    void deleteCategory(Long id);
+
     Map<String, Object> stats();
 
     int rebuildKnowledgeIndex();

@@ -1,6 +1,8 @@
 package com.ruc.platform.admin.knowledge.service;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
+import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.ruc.platform.admin.knowledge.dto.KnowledgeArticleSaveDTO;
 import com.ruc.platform.admin.knowledge.dto.KnowledgeCategorySaveDTO;
@@ -280,11 +282,14 @@ public class AdminKnowledgeServiceImpl implements AdminKnowledgeService {
     }
 
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public Long createCategory(KnowledgeCategorySaveDTO dto) {
+        int sortOrder = dto.getSortOrder() == null ? 0 : dto.getSortOrder();
+        shiftCategoriesFrom(sortOrder);
         KnowledgeCategory category = new KnowledgeCategory();
         category.setName(dto.getName());
         category.setCode(dto.getCode());
-        category.setSortOrder(dto.getSortOrder() == null ? 0 : dto.getSortOrder());
+        category.setSortOrder(sortOrder);
         category.setStatus(dto.getStatus() == null ? 1 : dto.getStatus());
         category.setCreatedAt(LocalDateTime.now());
         categoryMapper.insert(category);
@@ -305,6 +310,20 @@ public class AdminKnowledgeServiceImpl implements AdminKnowledgeService {
     }
 
     @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void deleteCategory(Long id) {
+        KnowledgeCategory category = categoryMapper.selectById(id);
+        if (category == null) {
+            throw new BizException(ResultCode.NOT_FOUND, "分类不存在");
+        }
+        articleMapper.update(null, new UpdateWrapper<KnowledgeArticle>()
+                .eq("category_id", id)
+                .set("category_id", null));
+        categoryMapper.deleteById(id);
+        closeCategorySortGap(category.getSortOrder() == null ? 0 : category.getSortOrder());
+    }
+
+    @Override
     public Map<String, Object> stats() {
         Map<String, Object> stats = new LinkedHashMap<>();
         stats.put("articleCount", articleMapper.selectCount(null));
@@ -313,6 +332,18 @@ public class AdminKnowledgeServiceImpl implements AdminKnowledgeService {
         stats.put("behaviorEventCount", behaviorEventMapper.selectCount(null));
         stats.put("recommendationLogCount", recommendationLogMapper.selectCount(null));
         return stats;
+    }
+
+    private void shiftCategoriesFrom(int sortOrder) {
+        categoryMapper.update(null, new LambdaUpdateWrapper<KnowledgeCategory>()
+                .ge(KnowledgeCategory::getSortOrder, sortOrder)
+                .setSql("sort_order = sort_order + 1"));
+    }
+
+    private void closeCategorySortGap(int sortOrder) {
+        categoryMapper.update(null, new LambdaUpdateWrapper<KnowledgeCategory>()
+                .gt(KnowledgeCategory::getSortOrder, sortOrder)
+                .setSql("sort_order = sort_order - 1"));
     }
 
     @Override

@@ -138,6 +138,12 @@ public class AdminKnowledgeController {
         return Result.ok();
     }
 
+    @DeleteMapping("/categories/{id}")
+    public Result<Void> deleteCategory(@PathVariable Long id) {
+        adminKnowledgeService.deleteCategory(id);
+        return Result.ok();
+    }
+
     @GetMapping("/stats")
     public Result<Map<String, Object>> stats() {
         return Result.ok(adminKnowledgeService.stats());
