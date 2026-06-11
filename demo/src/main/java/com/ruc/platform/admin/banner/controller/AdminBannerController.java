@@ -5,7 +5,10 @@ import com.ruc.platform.admin.banner.dto.BannerSaveDTO;
 import com.ruc.platform.common.api.Result;
 import com.ruc.platform.home.entity.HomeBanner;
 import com.ruc.platform.home.mapper.HomeBannerMapper;
+import com.ruc.platform.notice.entity.Notice;
+import com.ruc.platform.notice.mapper.NoticeMapper;
 import lombok.RequiredArgsConstructor;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -24,6 +27,7 @@ import java.util.List;
 public class AdminBannerController {
 
     private final HomeBannerMapper homeBannerMapper;
+    private final NoticeMapper noticeMapper;
 
     @GetMapping
     public Result<List<HomeBanner>> list() {
@@ -68,7 +72,16 @@ public class AdminBannerController {
     }
 
     @DeleteMapping("/{id}")
+    @Transactional
     public Result<Void> delete(@PathVariable Long id) {
+        HomeBanner banner = homeBannerMapper.selectById(id);
+        if (banner != null && "notice".equals(banner.getSourceType()) && banner.getSourceNoticeId() != null) {
+            Notice notice = new Notice();
+            notice.setId(banner.getSourceNoticeId());
+            notice.setIsBanner(false);
+            notice.setUpdatedAt(LocalDateTime.now());
+            noticeMapper.updateById(notice);
+        }
         homeBannerMapper.deleteById(id);
         return Result.ok();
     }
