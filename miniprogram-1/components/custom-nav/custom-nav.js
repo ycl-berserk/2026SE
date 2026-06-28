@@ -4,11 +4,19 @@ Component({
       type: String,
       value: '',
     },
+    titleOffset: {
+      type: Number,
+      value: 0,
+      observer(value) {
+        this.updateTitleTop(value)
+      },
+    },
   },
 
   data: {
     navBarHeight: 56,
     navTitleTop: 26,
+    titleTop: 26,
     canBack: false,
   },
 
@@ -31,7 +39,18 @@ Component({
       const navTitleTop = menu && menu.top ? Math.max(statusBarHeight + 2, menu.top - 6) : statusBarHeight + 8
       const canBack = getCurrentPages().length > 1
 
-      this.setData({ navBarHeight, navTitleTop, canBack })
+      this.setData({
+        navBarHeight,
+        navTitleTop,
+        titleTop: navTitleTop + (Number(this.data.titleOffset) || 0),
+        canBack,
+      })
+    },
+
+    updateTitleTop(offset) {
+      this.setData({
+        titleTop: this.data.navTitleTop + (Number(offset) || 0),
+      })
     },
 
     onBack() {

@@ -240,10 +240,10 @@ Page({
         }
 
         wx.hideLoading()
-        const platform = (wx.getSystemInfoSync && wx.getSystemInfoSync().platform) || ''
-        if (platform === 'devtools') {
-          wx.showToast({ title: '开发者工具不支持预览，请在真机打开', icon: 'none' })
-          return
+          const platform = wx.getDeviceInfo ? (wx.getDeviceInfo().platform || '') : ''
+          if (platform === 'devtools') {
+            wx.showToast({ title: '开发者工具不支持预览，请在真机打开', icon: 'none' })
+            return
         }
 
         wx.openDocument({

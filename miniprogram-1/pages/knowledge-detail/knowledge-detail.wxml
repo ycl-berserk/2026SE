@@ -1,4 +1,6 @@
 <view class="page">
+  <custom-nav title="文章详情" title-offset="{{-6}}" />
+
   <view wx:if="{{loading}}" class="empty-card">加载中...</view>
 
   <view wx:elif="{{article}}" class="detail-card">

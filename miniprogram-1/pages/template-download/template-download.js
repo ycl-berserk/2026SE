@@ -70,7 +70,7 @@ Page({
         this.reportBehavior({ eventType: 'download_template', targetType: 'template', targetId: id, sourcePage: 'template-download' })
         wx.hideLoading()
 
-        const platform = (wx.getSystemInfoSync && wx.getSystemInfoSync().platform) || ''
+        const platform = wx.getDeviceInfo ? (wx.getDeviceInfo().platform || '') : ''
         if (platform === 'devtools') {
           wx.showToast({ title: '开发者工具不支持预览，请在真机打开', icon: 'none' })
           return

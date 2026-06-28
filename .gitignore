@@ -65,3 +65,7 @@ runtime/
 
 # 培养方案
 docs/*.pdf
+
+# 本地调试
+demo/*.mv.db
+demo/*.lock.db

@@ -94,19 +94,25 @@ Page({
   },
 
   downloadUrl(url, token, label) {
-    wx.showLoading({ title: '下载中' })
-    wx.downloadFile({
+    const platform = this.getPlatform()
+    if (platform === 'devtools') {
+      this.readTextFileInDevtools(url, token, label)
+      return
+    }
+
+    const downloadOptions = {
       url,
       header: { Authorization: token },
+    }
+
+    wx.showLoading({ title: '下载中' })
+    wx.downloadFile({
+      ...downloadOptions,
       success: (res) => {
         wx.hideLoading()
         if (res.statusCode !== 200) {
+          console.error(`${label}下载失败，HTTP 状态码：`, res.statusCode, res)
           wx.showToast({ title: '下载失败', icon: 'none' })
-          return
-        }
-        const platform = (wx.getSystemInfoSync && wx.getSystemInfoSync().platform) || ''
-        if (platform === 'devtools') {
-          wx.showToast({ title: `${label}已下载，开发者工具不支持预览`, icon: 'none' })
           return
         }
         wx.openDocument({
@@ -115,10 +121,103 @@ Page({
           fail: () => wx.showToast({ title: '打开失败', icon: 'none' }),
         })
       },
-      fail: () => {
+      fail: (error) => {
         wx.hideLoading()
+        console.error(`${label}下载失败：`, error)
         wx.showToast({ title: '下载失败', icon: 'none' })
       },
+    })
+  },
+
+  getPlatform() {
+    if (wx.getDeviceInfo) {
+      return wx.getDeviceInfo().platform || ''
+    }
+    return ''
+  },
+
+  readTextFileInDevtools(url, token, label) {
+    wx.showLoading({ title: '读取中' })
+    wx.request({
+      url,
+      header: { Authorization: token },
+      responseType: 'text',
+      success: (res) => {
+        wx.hideLoading()
+        if (res.statusCode !== 200) {
+          console.error(`${label}读取失败，HTTP 状态码：`, res.statusCode, res)
+          wx.showToast({ title: '读取失败', icon: 'none' })
+          return
+        }
+
+        const content = typeof res.data === 'string' ? res.data : JSON.stringify(res.data, null, 2)
+        console.log(`${label}文件内容：\n`, content)
+        wx.setClipboardData({
+          data: content,
+          success: () => {
+            wx.showModal({
+              title: `${label}已读取`,
+              content: '开发者工具中已直接读取文件内容，并复制到剪贴板；完整内容也已输出到 Console。',
+              showCancel: false,
+            })
+          },
+          fail: (error) => {
+            console.warn(`${label}内容复制失败：`, error)
+            wx.showModal({
+              title: `${label}已读取`,
+              content: '开发者工具中已直接读取文件内容，完整内容已输出到 Console。',
+              showCancel: false,
+            })
+          },
+        })
+      },
+      fail: (error) => {
+        wx.hideLoading()
+        console.error(`${label}读取失败：`, error)
+        wx.showToast({ title: '读取失败', icon: 'none' })
+      },
+    })
+  },
+
+  handleDevtoolsDownload(filePath, label) {
+    console.log(`${label}已下载到开发者工具临时路径：`, filePath)
+
+    wx.getFileSystemManager().readFile({
+      filePath,
+      encoding: 'utf8',
+      success: (fileRes) => {
+        console.log(`${label}文件内容：\n`, fileRes.data)
+        wx.setClipboardData({
+          data: fileRes.data,
+          success: () => {
+            wx.showModal({
+              title: `${label}已读取`,
+              content: '开发者工具的 http://tmp 临时路径不能直接在浏览器打开。文件内容已复制到剪贴板，也已输出到 Console。',
+              showCancel: false,
+            })
+          },
+          fail: (error) => {
+            console.warn(`${label}内容复制失败：`, error)
+            wx.showModal({
+              title: `${label}已读取`,
+              content: '开发者工具的 http://tmp 临时路径不能直接在浏览器打开。文件内容已输出到 Console。',
+              showCancel: false,
+            })
+          },
+        })
+      },
+      fail: (error) => {
+        console.error(`${label}临时文件读取失败：`, error)
+        this.showDevtoolsDownloadTip(filePath, label)
+      },
+    })
+  },
+
+  showDevtoolsDownloadTip(filePath, label) {
+    wx.showModal({
+      title: `${label}已下载`,
+      content: `开发者工具只能拿到小程序临时路径，不能复制到浏览器打开。请在真机中打开，或在 Console 查看 tempFilePath：${filePath}`,
+      showCancel: false,
     })
   },
 })
