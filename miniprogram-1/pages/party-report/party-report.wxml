@@ -42,7 +42,7 @@
       </view>
       <view wx:if="{{item.reviewComment}}" class="muted">意见：{{item.reviewComment}}</view>
       <view class="row">
-        <button wx:if="{{item.fileId}}" size="mini" bindtap="onOpenAttachment" data-fileid="{{item.fileId}}">查看附件</button>
+        <button wx:if="{{item.fileId}}" size="mini" bindtap="onOpenAttachment" data-fileid="{{item.fileId}}" data-filename="{{item.fileName}}">查看附件</button>
       </view>
     </view>
   </view>

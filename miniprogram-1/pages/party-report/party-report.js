@@ -50,6 +50,11 @@ Page({
           localFilePath: '',
         })
 
+        if (this.isDevtoolsTmpPath(pickedPath)) {
+          this.setData({ localFilePath: pickedPath })
+          return
+        }
+
         const fs = wx.getFileSystemManager()
         const ext = lower.lastIndexOf('.') >= 0 ? lower.slice(lower.lastIndexOf('.')) : ''
         const safeExt = ext || '.bin'
@@ -75,8 +80,8 @@ Page({
                 })
               },
               fail: (err) => {
-                this.setData({ fileName: '', pickedFilePath: '', localFilePath: '' })
-                wx.showToast({ title: (err && err.errMsg) || '文件不存在，请重新选择', icon: 'none' })
+                console.warn('思想汇报附件无法复制到用户目录，将尝试直接上传临时路径：', err)
+                this.setData({ localFilePath: pickedPath })
               },
             })
           },
@@ -117,7 +122,10 @@ Page({
               reject(new Error('上传失败'))
             }
           },
-          fail: (err) => reject(new Error((err && err.errMsg) || '上传失败')),
+          fail: (err) => {
+            console.error('思想汇报附件上传失败：', err)
+            reject(new Error((err && err.errMsg) || '上传失败'))
+          },
         })
       })
       return uploadRes && uploadRes.id ? uploadRes.id : null
@@ -182,8 +190,14 @@ Page({
     return '未知'
   },
 
+  isDevtoolsTmpPath(path) {
+    const platform = wx.getDeviceInfo ? (wx.getDeviceInfo().platform || '') : ''
+    return platform === 'devtools' && /^http:\/\/tmp\//.test(String(path || ''))
+  },
+
   onOpenAttachment(e) {
     const fileId = e.currentTarget.dataset.fileid
+    const fileName = e.currentTarget.dataset.filename || ''
     if (!fileId) {
       return
     }
@@ -192,21 +206,111 @@ Page({
       wx.showToast({ title: '未登录', icon: 'none' })
       return
     }
-    wx.downloadFile({
-      url: `${BASE_URL}/api/files/${fileId}/download`,
+    const platform = wx.getDeviceInfo ? (wx.getDeviceInfo().platform || '') : ''
+    const fileType = this.getDocumentFileType(fileName)
+    const url = `${BASE_URL}/api/files/${fileId}/download`
+    if (platform === 'devtools') {
+      this.openAttachmentInDevtools(url, token, fileId, fileType)
+      return
+    }
+
+    const downloadOptions = {
+      url,
       header: { Authorization: token },
+    }
+
+    wx.showLoading({ title: '下载中' })
+    wx.downloadFile({
+      ...downloadOptions,
       success: (res) => {
+        wx.hideLoading()
         if (res.statusCode !== 200) {
+          console.error('思想汇报附件下载失败，HTTP 状态码：', res.statusCode, res)
           wx.showToast({ title: '下载失败', icon: 'none' })
           return
         }
+        const filePath = res.filePath || res.tempFilePath
         wx.openDocument({
-          filePath: res.tempFilePath,
+          filePath,
+          fileType,
           showMenu: true,
-          fail: () => wx.showToast({ title: '打开失败', icon: 'none' }),
+          fail: (error) => {
+            console.error('思想汇报附件打开失败：', error, filePath)
+            if (platform === 'devtools') {
+              wx.showModal({
+                title: '附件已下载',
+                content: `开发者工具可能无法预览 Word/PDF，请在真机查看。当前文件路径：${filePath}`,
+                showCancel: false,
+              })
+              return
+            }
+            wx.showToast({ title: '打开失败', icon: 'none' })
+          },
         })
       },
-      fail: () => wx.showToast({ title: '下载失败', icon: 'none' }),
+      fail: (error) => {
+        wx.hideLoading()
+        console.error('思想汇报附件下载失败：', error)
+        wx.showToast({ title: '下载失败', icon: 'none' })
+      },
     })
+  },
+
+  openAttachmentInDevtools(url, token, fileId, fileType) {
+    wx.showLoading({ title: '下载中' })
+    wx.request({
+      url,
+      header: { Authorization: token },
+      responseType: 'arraybuffer',
+      success: (res) => {
+        if (res.statusCode !== 200) {
+          wx.hideLoading()
+          console.error('思想汇报附件下载失败，HTTP 状态码：', res.statusCode, res)
+          wx.showToast({ title: '下载失败', icon: 'none' })
+          return
+        }
+
+        const fs = wx.getFileSystemManager()
+        const filePath = `${wx.env.USER_DATA_PATH}/party-report-attachment-${fileId}.${fileType}`
+        fs.writeFile({
+          filePath,
+          data: res.data,
+          encoding: 'binary',
+          success: () => {
+            wx.hideLoading()
+            wx.openDocument({
+              filePath,
+              fileType,
+              showMenu: true,
+              fail: (error) => {
+                console.error('思想汇报附件打开失败：', error, filePath)
+                wx.showModal({
+                  title: '附件已下载',
+                  content: `开发者工具可能无法预览 Word/PDF，请在真机查看。当前文件路径：${filePath}`,
+                  showCancel: false,
+                })
+              },
+            })
+          },
+          fail: (error) => {
+            wx.hideLoading()
+            console.error('思想汇报附件写入本地失败：', error)
+            wx.showToast({ title: '下载失败', icon: 'none' })
+          },
+        })
+      },
+      fail: (error) => {
+        wx.hideLoading()
+        console.error('思想汇报附件下载失败：', error)
+        wx.showToast({ title: '下载失败', icon: 'none' })
+      },
+    })
+  },
+
+  getDocumentFileType(fileName) {
+    const lower = String(fileName || '').toLowerCase()
+    if (lower.endsWith('.pdf')) return 'pdf'
+    if (lower.endsWith('.doc')) return 'doc'
+    return 'docx'
   },
 })

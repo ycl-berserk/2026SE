@@ -67,5 +67,5 @@ runtime/
 docs/*.pdf
 
 # 本地调试
-demo/*.mv.db
-demo/*.lock.db
+demo/ruc_platform.mv.db
+demo/ruc_platform.lock.db

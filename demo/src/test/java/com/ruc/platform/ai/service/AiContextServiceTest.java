@@ -1,5 +1,6 @@
 package com.ruc.platform.ai.service;
 
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.ruc.platform.PlatformApplication;
 import com.ruc.platform.ai.vo.AiCitationVO;
 import com.ruc.platform.knowledgeness.config.KnowledgeIntelligenceProperties;
@@ -54,6 +55,10 @@ class AiContextServiceTest {
     @BeforeEach
     void setUp() {
         properties.getSearch().setIndexPath(tempDir.resolve("unified-search").toString());
+        userMessageMapper.delete(new QueryWrapper<UserMessage>().in("notice_id", List.of(
+                95101L, 95102L, 95103L, 95104L, 95105L,
+                95200L, 95201L, 95202L, 95203L, 95204L, 95205L, 95206L, 95207L
+        )));
         userMessageMapper.deleteById(96101L);
         userMessageMapper.deleteById(96102L);
         userMessageMapper.deleteById(96103L);

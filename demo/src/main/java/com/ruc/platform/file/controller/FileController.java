@@ -1,6 +1,7 @@
 package com.ruc.platform.file.controller;
 
 import cn.dev33.satoken.stp.StpUtil;
+import com.ruc.platform.auth.service.RoleAccessService;
 import com.ruc.platform.common.api.Result;
 import com.ruc.platform.common.api.ResultCode;
 import com.ruc.platform.common.exception.BizException;
@@ -22,6 +23,9 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.Set;
 
+import static com.ruc.platform.auth.AuthConstants.ROLE_ADMIN;
+import static com.ruc.platform.auth.AuthConstants.ROLE_COUNSELOR;
+
 @Slf4j
 @RestController
 @RequestMapping("/api/files")
@@ -30,8 +34,10 @@ public class FileController {
 
     private final FileService fileService;
     private final KnowledgeService knowledgeService;
+    private final RoleAccessService roleAccessService;
 
-    private static final Set<String> PUBLIC_BIZ_TYPES = Set.of("template", "knowledge-template", "knowledge-file");
+    private static final Set<String> PUBLIC_BIZ_TYPES = Set.of("template", "knowledge-template", "knowledge-file", "notice-attachment");
+    private static final Set<String> REVIEWER_READABLE_BIZ_TYPES = Set.of("report");
 
     @PostMapping("/upload")
     public Result<FileUploadResultVO> upload(
@@ -47,10 +53,8 @@ public class FileController {
         FileMetadata metadata = fileService.getFileMetadata(id);
         long userId = StpUtil.getLoginIdAsLong();
 
-        if (!PUBLIC_BIZ_TYPES.contains(metadata.getBizType())) {
-            if (!metadata.getUploaderId().equals(userId)) {
-                throw new BizException(ResultCode.FORBIDDEN, "无权下载该文件");
-            }
+        if (!canDownload(metadata, userId)) {
+            throw new BizException(ResultCode.FORBIDDEN, "无权下载该文件");
         }
 
         if (PUBLIC_BIZ_TYPES.contains(metadata.getBizType())) {
@@ -69,5 +73,18 @@ public class FileController {
             log.error("文件读取失败，id: {}, path: {}", id, metadata.getStoragePath(), e);
             throw new BizException(ResultCode.NOT_FOUND, "文件不存在或已删除");
         }
+    }
+
+    private boolean canDownload(FileMetadata metadata, long userId) {
+        if (PUBLIC_BIZ_TYPES.contains(metadata.getBizType())) {
+            return true;
+        }
+        if (metadata.getUploaderId() != null && metadata.getUploaderId().equals(userId)) {
+            return true;
+        }
+        if (REVIEWER_READABLE_BIZ_TYPES.contains(metadata.getBizType())) {
+            return roleAccessService.hasAnyRole(userId, ROLE_COUNSELOR, ROLE_ADMIN);
+        }
+        return false;
     }
 }

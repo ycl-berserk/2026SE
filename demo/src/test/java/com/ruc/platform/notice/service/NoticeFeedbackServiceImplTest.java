@@ -1,5 +1,6 @@
 package com.ruc.platform.notice.service;
 
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.ruc.platform.PlatformApplication;
 import com.ruc.platform.common.exception.BizException;
 import com.ruc.platform.notice.dto.NoticeFeedbackCreateDTO;
@@ -49,6 +50,7 @@ class NoticeFeedbackServiceImplTest {
     void setUp() {
         noticeFeedbackMessageMapper.delete(null);
         noticeFeedbackMapper.delete(null);
+        userMessageMapper.delete(new QueryWrapper<UserMessage>().in("notice_id", List.of(88101L, 88102L, 88103L)));
         userMessageMapper.deleteById(89101L);
         userMessageMapper.deleteById(89102L);
         userMessageMapper.deleteById(89103L);

@@ -1,9 +1,11 @@
 package com.ruc.platform.student.mapper;
 
 import com.ruc.platform.PlatformApplication;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.ActiveProfiles;
 
 import java.util.List;
@@ -16,6 +18,19 @@ class StudentProfileMapperTest {
 
     @Autowired
     private StudentProfileMapper studentProfileMapper;
+
+    @Autowired
+    private JdbcTemplate jdbcTemplate;
+
+    @BeforeEach
+    void normalizeSeedStudents() {
+        jdbcTemplate.update("UPDATE t_user SET status = 1 WHERE id IN (1001, 1002, 1003)");
+        jdbcTemplate.update("""
+                UPDATE student_profile
+                SET grade = '2023本', auth_type = CASE WHEN user_id = 1003 THEN 'cadre' ELSE 'student' END
+                WHERE user_id IN (1001, 1002, 1003)
+                """);
+    }
 
     @Test
     void selectsTargetStudentUserIdsByMultipleGradesAndMajors() {

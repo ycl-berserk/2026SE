@@ -2,6 +2,8 @@ package com.ruc.platform.party.controller;
 
 import cn.dev33.satoken.stp.StpUtil;
 import com.ruc.platform.common.api.Result;
+import com.ruc.platform.file.entity.FileMetadata;
+import com.ruc.platform.file.service.FileService;
 import com.ruc.platform.party.dto.PartyReportDTO;
 import com.ruc.platform.party.dto.PartyActivityCreateDTO;
 import com.ruc.platform.party.entity.PartyReport;
@@ -31,6 +33,7 @@ import java.util.stream.Collectors;
 public class PartyController {
 
     private final PartyService partyService;
+    private final FileService fileService;
 
     @GetMapping("/me/overview")
     public Result<PartyOverviewVO> getOverview() {
@@ -78,6 +81,14 @@ public class PartyController {
             vo.setId(item.getId());
             vo.setTitle(item.getTitle());
             vo.setFileId(item.getFileId());
+            if (item.getFileId() != null) {
+                try {
+                    FileMetadata metadata = fileService.getFileMetadata(item.getFileId());
+                    vo.setFileName(metadata.getOriginName());
+                } catch (Exception e) {
+                    log.warn("思想汇报附件元数据读取失败，fileId: {}", item.getFileId(), e);
+                }
+            }
             vo.setStatus(item.getStatus());
             vo.setReviewComment(item.getReviewComment());
             vo.setSubmitTime(item.getSubmitTime());

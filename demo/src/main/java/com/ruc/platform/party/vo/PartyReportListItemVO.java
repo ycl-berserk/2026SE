@@ -18,6 +18,8 @@ public class PartyReportListItemVO {
     @JsonSerialize(using = ToStringSerializer.class)
     private Long fileId;
 
+    private String fileName;
+
     private Integer status;
 
     private String reviewComment;
