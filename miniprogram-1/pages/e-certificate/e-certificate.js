@@ -1,5 +1,6 @@
 const { ensureLogin } = require('../../utils/auth')
 const { request } = require('../../utils/request')
+const { BASE_URL, TOKEN_KEY } = require('../../utils/config')
 
 Page({
   data: {
@@ -28,6 +29,7 @@ Page({
         ...item,
         statusText: ['待审批', '审批中', '已通过', '已驳回'][item.status] || '未知',
         submitTime: (item.submitTime || '').replace('T', ' ').slice(0, 16),
+        canDownload: item.status === 2 && !!item.certificateFileId,
       })) })
     } catch (error) {
       console.error('Load certificate list failed:', error)
@@ -74,5 +76,56 @@ Page({
     } finally {
       this.setData({ submitting: false })
     }
+  },
+
+  downloadCertificate(event) {
+    const fileId = event.currentTarget.dataset.fileid
+    if (!fileId) {
+      wx.showToast({ title: '证明文件未生成', icon: 'none' })
+      return
+    }
+    const token = wx.getStorageSync(TOKEN_KEY)
+    if (!token) {
+      wx.showToast({ title: '未登录', icon: 'none' })
+      return
+    }
+
+    const platform = wx.getDeviceInfo ? (wx.getDeviceInfo().platform || '') : ''
+    wx.showLoading({ title: '下载中' })
+    wx.downloadFile({
+      url: `${BASE_URL}/api/files/${fileId}/download`,
+      header: { Authorization: token },
+      success: (res) => {
+        wx.hideLoading()
+        if (res.statusCode !== 200) {
+          console.error('电子证明下载失败，HTTP 状态码：', res.statusCode, res)
+          wx.showToast({ title: '下载失败', icon: 'none' })
+          return
+        }
+        const filePath = res.filePath || res.tempFilePath
+        wx.openDocument({
+          filePath,
+          fileType: 'pdf',
+          showMenu: true,
+          fail: (error) => {
+            console.error('电子证明打开失败：', error, filePath)
+            if (platform === 'devtools') {
+              wx.showModal({
+                title: '证明已下载',
+                content: `开发者工具可能无法预览 PDF，请在真机查看。当前文件路径：${filePath}`,
+                showCancel: false,
+              })
+              return
+            }
+            wx.showToast({ title: '打开失败', icon: 'none' })
+          },
+        })
+      },
+      fail: (error) => {
+        wx.hideLoading()
+        console.error('电子证明下载失败：', error)
+        wx.showToast({ title: '下载失败', icon: 'none' })
+      },
+    })
   },
 })

@@ -2,6 +2,7 @@ package com.ruc.platform.file.controller;
 
 import cn.dev33.satoken.stp.StpUtil;
 import com.ruc.platform.auth.service.RoleAccessService;
+import com.ruc.platform.certificate.mapper.ECertificateMapper;
 import com.ruc.platform.common.api.Result;
 import com.ruc.platform.common.api.ResultCode;
 import com.ruc.platform.common.exception.BizException;
@@ -35,9 +36,11 @@ public class FileController {
     private final FileService fileService;
     private final KnowledgeService knowledgeService;
     private final RoleAccessService roleAccessService;
+    private final ECertificateMapper certificateMapper;
 
     private static final Set<String> PUBLIC_BIZ_TYPES = Set.of("template", "knowledge-template", "knowledge-file", "notice-attachment");
     private static final Set<String> REVIEWER_READABLE_BIZ_TYPES = Set.of("report");
+    private static final String CERTIFICATE_PDF_BIZ_TYPE = "certificate-pdf";
 
     @PostMapping("/upload")
     public Result<FileUploadResultVO> upload(
@@ -84,6 +87,10 @@ public class FileController {
         }
         if (REVIEWER_READABLE_BIZ_TYPES.contains(metadata.getBizType())) {
             return roleAccessService.hasAnyRole(userId, ROLE_COUNSELOR, ROLE_ADMIN);
+        }
+        if (CERTIFICATE_PDF_BIZ_TYPE.equals(metadata.getBizType())) {
+            return roleAccessService.hasAnyRole(userId, ROLE_COUNSELOR, ROLE_ADMIN)
+                    || certificateMapper.countByUserIdAndCertificateFileId(userId, metadata.getId()) > 0;
         }
         return false;
     }

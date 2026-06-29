@@ -98,6 +98,22 @@
   color: #b91c1c;
 }
 
+.card-actions {
+  margin-top: 18rpx;
+  display: flex;
+}
+
+.download-btn {
+  height: 64rpx;
+  line-height: 64rpx;
+  padding: 0 28rpx;
+  border-radius: 32rpx;
+  background: #123c63;
+  color: #fff;
+  font-size: 24rpx;
+  font-weight: 600;
+}
+
 .empty {
   padding: 48rpx;
   text-align: center;

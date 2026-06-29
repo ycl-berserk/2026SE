@@ -2,6 +2,8 @@ package com.ruc.platform.certificate.entity;
 
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.databind.ser.std.ToStringSerializer;
 import lombok.Data;
 
 import java.time.LocalDateTime;
@@ -30,6 +32,9 @@ public class ECertificate {
     private LocalDateTime approvedAt;
 
     private String rejectReason;
+
+    @JsonSerialize(using = ToStringSerializer.class)
+    private Long certificateFileId;
 
     private LocalDateTime createdAt;
 
