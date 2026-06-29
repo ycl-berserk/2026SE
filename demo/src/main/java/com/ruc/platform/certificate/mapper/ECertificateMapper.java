@@ -25,4 +25,12 @@ public interface ECertificateMapper extends BaseMapper<ECertificate> {
             WHERE user_id = #{userId}
             """)
     Long countByUserId(@Param("userId") Long userId);
+
+    @Select("""
+            SELECT COUNT(*)
+            FROM e_certificate
+            WHERE user_id = #{userId}
+              AND certificate_file_id = #{fileId}
+            """)
+    Long countByUserIdAndCertificateFileId(@Param("userId") Long userId, @Param("fileId") Long fileId);
 }

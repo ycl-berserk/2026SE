@@ -1,6 +1,7 @@
 <script setup>
 import { ref, onMounted } from 'vue'
-import { ElMessage, ElMessageBox } from 'element-plus'
+import axios from 'axios'
+import { ElMessage } from 'element-plus'
 import request from '../api/http'
 
 const list = ref([])
@@ -9,6 +10,12 @@ const detailVisible = ref(false)
 const currentItem = ref(null)
 const rejectDialogVisible = ref(false)
 const rejectReason = ref('')
+const approveDialogVisible = ref(false)
+const approveTarget = ref(null)
+const certificateFileId = ref(null)
+const certificateFileName = ref('')
+const certificateUploading = ref(false)
+const approving = ref(false)
 
 const statusMap = { 0: '待审批', 1: '审批中', 2: '已通过', 3: '已驳回' }
 const statusType = { 0: 'warning', 1: 'primary', 2: 'success', 3: 'danger' }
@@ -31,15 +38,63 @@ function showDetail(row) {
   detailVisible.value = true
 }
 
-async function handleApprove(row) {
+function openApprove(row) {
+  approveTarget.value = row
+  certificateFileId.value = null
+  certificateFileName.value = ''
+  approveDialogVisible.value = true
+}
+
+function beforePdfUpload(file) {
+  const isPdf = file.type === 'application/pdf' || /\.pdf$/i.test(file.name)
+  if (!isPdf) {
+    ElMessage.warning('请上传 PDF 文件')
+  }
+  return isPdf
+}
+
+async function uploadCertificatePdf(options) {
+  certificateUploading.value = true
   try {
-    await ElMessageBox.confirm(`确定通过「${row.title}」？`, '提示')
-    await request.post(`/api/admin/certificates/${row.id}/approve`)
+    const formData = new FormData()
+    formData.append('file', options.file)
+    formData.append('bizType', 'certificate-pdf')
+    const result = await request.post('/api/files/upload', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    })
+    certificateFileId.value = result.id
+    certificateFileName.value = result.originName || options.file.name
+    ElMessage.success('证明 PDF 上传成功')
+    options.onSuccess?.(result)
+  } catch (e) {
+    ElMessage.error(e.message || '证明 PDF 上传失败')
+    options.onError?.(e)
+  } finally {
+    certificateUploading.value = false
+  }
+}
+
+async function handleApprove() {
+  if (!approveTarget.value) {
+    return
+  }
+  if (!certificateFileId.value) {
+    ElMessage.warning('请先上传证明 PDF')
+    return
+  }
+  approving.value = true
+  try {
+    await request.post(`/api/admin/certificates/${approveTarget.value.id}/approve`, {
+      certificateFileId: certificateFileId.value,
+    })
     ElMessage.success('已通过')
+    approveDialogVisible.value = false
     detailVisible.value = false
     await fetchList()
   } catch (e) {
-    if (e !== 'cancel') ElMessage.error(e.message || '操作失败')
+    ElMessage.error(e.message || '操作失败')
+  } finally {
+    approving.value = false
   }
 }
 
@@ -62,6 +117,34 @@ async function handleReject() {
     await fetchList()
   } catch (e) {
     ElMessage.error(e.message || '操作失败')
+  }
+}
+
+async function downloadCertificatePdf(fileId) {
+  if (!fileId) {
+    return
+  }
+  const token = localStorage.getItem('accessToken')
+  if (!token) {
+    ElMessage.error('未登录')
+    return
+  }
+  const baseURL = import.meta.env.VITE_API_BASE_URL || ''
+  try {
+    const response = await axios.get(`${baseURL}/api/files/${fileId}/download`, {
+      responseType: 'blob',
+      headers: { Authorization: token },
+    })
+    const blobUrl = window.URL.createObjectURL(response.data)
+    const link = document.createElement('a')
+    link.href = blobUrl
+    link.download = ''
+    document.body.appendChild(link)
+    link.click()
+    link.remove()
+    window.URL.revokeObjectURL(blobUrl)
+  } catch (e) {
+    ElMessage.error(e.message || '证明下载失败')
   }
 }
 
@@ -90,8 +173,9 @@ onMounted(() => fetchList())
       <el-table-column label="操作" width="200" fixed="right">
         <template #default="{ row }">
           <el-button type="primary" link @click="showDetail(row)">详情</el-button>
-          <el-button v-if="row.status === 0" type="success" link @click="handleApprove(row)">通过</el-button>
+          <el-button v-if="row.status === 0" type="success" link @click="openApprove(row)">通过</el-button>
           <el-button v-if="row.status === 0" type="danger" link @click="openReject(row)">驳回</el-button>
+          <el-button v-if="row.certificateFileId" type="primary" link @click="downloadCertificatePdf(row.certificateFileId)">下载证明</el-button>
         </template>
       </el-table-column>
     </el-table>
@@ -103,12 +187,35 @@ onMounted(() => fetchList())
         <el-descriptions-item label="理由">{{ currentItem.reason || '无' }}</el-descriptions-item>
         <el-descriptions-item label="状态">{{ statusMap[currentItem.status] }}</el-descriptions-item>
         <el-descriptions-item label="提交时间">{{ currentItem.submitTime }}</el-descriptions-item>
+        <el-descriptions-item v-if="currentItem.certificateFileId" label="证明 PDF">
+          <el-button type="primary" link @click="downloadCertificatePdf(currentItem.certificateFileId)">下载证明</el-button>
+        </el-descriptions-item>
         <el-descriptions-item v-if="currentItem.rejectReason" label="驳回原因">{{ currentItem.rejectReason }}</el-descriptions-item>
       </el-descriptions>
       <template #footer>
         <el-button @click="detailVisible = false">关闭</el-button>
-        <el-button v-if="currentItem && currentItem.status === 0" type="success" @click="handleApprove(currentItem)">通过</el-button>
+        <el-button v-if="currentItem && currentItem.status === 0" type="success" @click="openApprove(currentItem)">通过</el-button>
         <el-button v-if="currentItem && currentItem.status === 0" type="danger" @click="openReject(currentItem)">驳回</el-button>
+      </template>
+    </el-dialog>
+
+    <el-dialog v-model="approveDialogVisible" title="通过申请并上传证明" width="460px">
+      <div class="approve-panel">
+        <div class="approve-title">{{ approveTarget?.title }}</div>
+        <el-upload
+          :show-file-list="false"
+          :http-request="uploadCertificatePdf"
+          :before-upload="beforePdfUpload"
+          :disabled="certificateUploading"
+          accept="application/pdf,.pdf"
+        >
+          <el-button :loading="certificateUploading">上传证明 PDF</el-button>
+        </el-upload>
+        <div v-if="certificateFileName" class="file-name">{{ certificateFileName }}</div>
+      </div>
+      <template #footer>
+        <el-button @click="approveDialogVisible = false">取消</el-button>
+        <el-button type="success" :loading="approving" @click="handleApprove">确认通过</el-button>
       </template>
     </el-dialog>
 
@@ -126,4 +233,7 @@ onMounted(() => fetchList())
 .page { padding: 24px; }
 .page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
 .page-header h2 { margin: 0; font-size: 20px; }
+.approve-panel { display: flex; flex-direction: column; gap: 12px; }
+.approve-title { font-weight: 600; color: #303133; }
+.file-name { color: #409eff; font-size: 13px; }
 </style>
