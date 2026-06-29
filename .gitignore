@@ -70,3 +70,4 @@ docs/*.pdf
 demo/ruc_platform.mv.db
 demo/ruc_platform.lock.db
 postman/
+.postman/
