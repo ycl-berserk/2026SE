@@ -69,4 +69,4 @@ docs/*.pdf
 # 本地调试
 demo/ruc_platform.mv.db
 demo/ruc_platform.lock.db
-postman
+postman/
